@@ -165,7 +165,7 @@ Arrays are pointers to the first element of a contiguous block of memory.
     {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
 
 ==================================================
-I/O
+I/O Handling
 ========
 
 {ANSI.BOLD}Output{ANSI.END}
@@ -200,7 +200,7 @@ The implementations of these statements in assembly are not discussed here.
 You can check out the {ANSI.CYAN}compiler documentation{ANSI.END} for more information.
 
 ==================================================
-Type Conversion Rules
+Implicit Type Conversions
 ========
 
 X++26 performs implicit widening conversions but never implicit narrowing conversions.
@@ -340,6 +340,7 @@ Instruction Set
 
 * {ANSI.CYAN}I2F{ANSI.END}:      Converts the top of the stack into a float.
 * {ANSI.CYAN}F2I{ANSI.END}:      Converts the IEEE-754 representation of a float on top of the stack into an integer.
+* {ANSI.CYAN}BOOL{ANSI.END}:     Converts the top of the stack into a boolean ({ANSI.PURPLE}-1{ANSI.END} or {ANSI.PURPLE}0{ANSI.END})
 
 {ANSI.BOLD}Binary Operations{ANSI.END}
 {ANSI.YELLOW}These operations pop 2 values from the stack, {ANSI.RED}a{ANSI.YELLOW} and {ANSI.RED}b{ANSI.YELLOW}, and push the result to the stack.
@@ -380,9 +381,9 @@ This assumes {ANSI.RED}a{ANSI.YELLOW} is pushed before {ANSI.RED}b{ANSI.YELLOW}.
 {ANSI.YELLOW}These operations pop a value {ANSI.RED}a{ANSI.YELLOW} from the stack and push the result to the stack.{ANSI.END}
 * {ANSI.CYAN}NEGI{ANSI.END}: Performs {ANSI.CYAN}-{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is an integer.
 * {ANSI.CYAN}NEGF{ANSI.END}: Performs {ANSI.CYAN}-{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is a float.
-* {ANSI.CYAN}NOT{ANSI.END}:   Performs {ANSI.CYAN}~{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is an integer.
+* {ANSI.CYAN}NOT{ANSI.END}:  Performs {ANSI.CYAN}~{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is an integer.
 
-{ANSI.BOLD}Jumping and Branching{ANSI.END}
+{ANSI.BOLD}Jumping and Branching:{ANSI.END}
 * {ANSI.CYAN}JUMP x{ANSI.END}: Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END}.
 * {ANSI.CYAN}BRZ x{ANSI.END}:  Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is {ANSI.GREEN}0{ANSI.END}.
 * {ANSI.CYAN}BRNZ x{ANSI.END}: Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is not {ANSI.GREEN}0{ANSI.END}.
@@ -394,6 +395,13 @@ This assumes {ANSI.RED}a{ANSI.YELLOW} is pushed before {ANSI.RED}b{ANSI.YELLOW}.
 * {ANSI.CYAN}RET{ANSI.END}:  Pops the call stack into {ANSI.PURPLE}IP{ANSI.END}.
 * {ANSI.CYAN}RETZ{ANSI.END}: Pops the call stack into {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is {ANSI.GREEN}0{ANSI.END}.
 * {ANSI.CYAN}RETN{ANSI.END}: Pops the call stack into {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is not {ANSI.GREEN}0{ANSI.END}.
+
+{ANSI.BOLD}System Instructions:{ANSI.END}
+* {ANSI.CYAN}HALT{ANSI.END}:  Shuts down the entire VM.
+* {ANSI.CYAN}WAIT{ANSI.END}:  Pauses execution until interrupts are raised.
+* {ANSI.CYAN}INT x{ANSI.END}: Raises an interrupt to the VM.
+* {ANSI.CYAN}IRT{ANSI.END}:   Resolves the current interrupt.
+* {ANSI.CYAN}SYS x{ANSI.END}: Raises a syscall to be handled by the kernel.
 
 ==================================================
 Data Structure Representations
@@ -439,6 +447,7 @@ This allows logical and bitwise {ANSI.RED}AND{ANSI.END}, {ANSI.RED}OR{ANSI.END},
 ==================================================
 Planned Features
 ========
+
 {ANSI.UNDERLINE}0.2.0{ANSI.END}
 * Pointers
 * Strings
