@@ -305,7 +305,7 @@
         .hljs-xpp26-string { color: #ce9178; }
         .hljs-xpp26-number { color: #b5cea8; }
         .hljs-xpp26-comment { color: #6a9955; }
-        .hljs-xpp26-operator { color: #d4d4d4; }
+        .hljs-xpp26-operator { color: #d16dff; }
 
         /* Assembly syntax highlighting CSS targets */
         .hljs-asm-instruction { color: #f44747; font-weight: bold; }
@@ -430,11 +430,15 @@
                 },
                 {
                     className: 'xpp26-type',
-                    begin: '\\b(int|float|bool|string|char|ptr)\\b'
+                    begin: '\\b(int|float|bool|string|char)\\b'
                 },
                 {
                     className: 'xpp26-keyword',
                     begin: '\\b(var|array|out|in|for|while|repeat|until|if|else|true|false)\\b'
+                },
+                {
+                    className: 'xpp26-operator',
+                    begin: '\\+|-|\\*|\\/|\\%|<|>|=|&|\\||\\^|~|\\!'
                 }
             ]
         };
