@@ -201,7 +201,7 @@
             overflow-y: auto;
             font-size: 14px;
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: break-word;
             line-height: 1.5;
             position: relative;
         }
@@ -215,28 +215,27 @@
             color: var(--accent-blue);
         }
 
-        .code-block {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-light);
-            border-radius: 4px;
-            padding: 12px;
-            margin: 10px 0;
+        .code-block-wrapper {
             position: relative;
-            overflow-x: auto;
+            margin: 12px 0;
+            border-radius: 4px;
+            overflow: hidden;
         }
 
         .code-block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            font-size: 12px;
+            padding: 8px 12px;
+            background-color: var(--border-light);
+            font-size: 11px;
             color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .copy-btn {
             padding: 4px 8px;
-            background-color: var(--border-light);
+            background-color: transparent;
             border: 1px solid var(--border-light);
             color: var(--text-primary);
             cursor: pointer;
@@ -256,10 +255,82 @@
             color: #000;
         }
 
+        pre {
+            margin: 0;
+            padding: 12px;
+            background-color: var(--bg-secondary);
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
         hr {
             border: none;
             border-top: 2px dashed var(--border-light);
             margin: 20px 0;
+        }
+
+        .ansi-purple { color: #d16dff; }
+        .ansi-cyan { color: #4fc1ff; }
+        .ansi-darkcyan { color: #208080; }
+        .ansi-blue { color: #569cd6; }
+        .ansi-green { color: #608b4e; }
+        .ansi-yellow { color: #ffff73; }
+        .ansi-red { color: #f44747; }
+        .ansi-bold { font-weight: bold; }
+        .ansi-underline { text-decoration: underline; }
+        
+        .ansi-reset {
+            color: var(--text-primary);
+            font-weight: normal;
+            text-decoration: none;
+        }
+
+        /* Highlight.js customization */
+        .hljs {
+            background-color: transparent !important;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        /* X++26 syntax highlighting */
+        .hljs-xpp26-keyword { color: #d16dff; font-weight: bold; }
+        .hljs-xpp26-type { color: #569cd6; }
+        .hljs-xpp26-string { color: #ce9178; }
+        .hljs-xpp26-number { color: #b5cea8; }
+        .hljs-xpp26-comment { color: #6a9955; }
+        .hljs-xpp26-operator { color: #d4d4d4; }
+
+        /* Assembly syntax highlighting */
+        .hljs-asm-instruction { color: #f44747; font-weight: bold; }
+        .hljs-asm-register { color: #9cdcfe; }
+        .hljs-asm-number { color: #b5cea8; }
+        .hljs-asm-label { color: #4ec9b0; }
+        .hljs-asm-comment { color: #6a9955; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
         }
 
         .back-to-top {
@@ -287,48 +358,6 @@
 
         .back-to-top:hover {
             background-color: var(--accent);
-        }
-
-        /* ANSI color classes */
-        .ansi-purple { color: #d16dff; }
-        .ansi-cyan { color: #4fc1ff; }
-        .ansi-darkcyan { color: #208080; }
-        .ansi-blue { color: #569cd6; }
-        .ansi-green { color: #608b4e; }
-        .ansi-yellow { color: #ffff73; }
-        .ansi-red { color: #f44747; }
-        .ansi-bold { font-weight: bold; }
-        .ansi-underline { text-decoration: underline; }
-        
-        .ansi-reset {
-            color: var(--text-primary);
-            font-weight: normal;
-            text-decoration: none;
-        }
-
-        /* Highlight.js overrides */
-        .hljs {
-            background-color: transparent !important;
-            padding: 0;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-light);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
         }
     </style>
 </head>
@@ -374,6 +403,75 @@
     const themeToggle = document.getElementById('themeToggle');
     const backToTop = document.getElementById('backToTop');
     const breadcrumb = document.getElementById('breadcrumb');
+
+    // Custom language definitions
+    hljs.registerLanguage('xpp26', function() {
+        return {
+            name: 'X++26',
+            aliases: ['xpp26'],
+            keywords: {
+                keyword: 'var array out in for while repeat until if else true false',
+                type: 'int float bool string char ptr'
+            },
+            contains: [
+                {
+                    className: 'hljs-xpp26-string',
+                    begin: '"',
+                    end: '"',
+                    escapeBegin: '\\\\',
+                    escapeEnd: '\\\\'
+                },
+                {
+                    className: 'hljs-xpp26-string',
+                    begin: "'",
+                    end: "'"
+                },
+                {
+                    className: 'hljs-xpp26-comment',
+                    begin: '#',
+                    end: '$'
+                },
+                {
+                    className: 'hljs-xpp26-number',
+                    begin: '\\b\\d+(\\.\\d+)?\\b'
+                },
+                {
+                    className: 'hljs-xpp26-type',
+                    begin: '\\b(int|float|bool|string|char|ptr)\\b'
+                },
+                {
+                    className: 'hljs-xpp26-keyword',
+                    begin: '\\b(var|array|out|in|for|while|repeat|until|if|else|true|false)\\b'
+                }
+            ]
+        };
+    });
+
+    hljs.registerLanguage('asm', function() {
+        return {
+            name: 'Assembly',
+            aliases: ['asm', 'assembly'],
+            contains: [
+                {
+                    className: 'hljs-asm-comment',
+                    begin: ';',
+                    end: '$'
+                },
+                {
+                    className: 'hljs-asm-label',
+                    begin: '^\\s*:[a-zA-Z_][a-zA-Z0-9_]*'
+                },
+                {
+                    className: 'hljs-asm-instruction',
+                    begin: '\\b(PUSH|POP|LOAD|STORE|LOADIND|STREIND|I2F|F2I|BOOL|ADDI|SUBI|MULI|DIVI|MODI|POWI|ADDF|SUBF|MULF|DIVF|MODF|POWF|AND|OR|XOR|IEQ|INE|ILT|ILE|IGT|IGE|FEQ|FNE|FLT|FLE|FGT|FGE|NEGI|NEGF|NOT|JUMP|BRZ|BRNZ|CALL|CALZ|CALN|RET|RETZ|RETN|HALT|WAIT|INT|IRT|SYS)\\b'
+                },
+                {
+                    className: 'hljs-asm-number',
+                    begin: '0x[0-9a-fA-F]+|\\b\\d+\\b'
+                }
+            ]
+        };
+    });
 
     // Theme management
     function initializeTheme() {
@@ -439,18 +537,6 @@
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    function highlightCode(code, language = 'xpp26') {
-        try {
-            if (language === 'xpp26') {
-                // Fallback highlighting for X++26
-                return code;
-            }
-            return hljs.highlight(code, { language, ignoreIllegals: true }).value;
-        } catch (e) {
-            return code;
-        }
-    }
-
     function parseAnsi(text) {
         const targetRegex = /\x1b\]8;;([^\\]*?)\x1b\\(.*?)\x1b\]8;;\s*\x1b\\/g;
         let pool = text.replace(targetRegex, function(match, url, linkText) {
@@ -468,12 +554,22 @@
 
         // Code block detection and syntax highlighting
         pool = pool.replace(/```([\w]*)\n([\s\S]*?)```/g, function(match, lang, code) {
-            const language = lang || 'xpp26';
+            const language = lang || 'plaintext';
             const cleanCode = code.trim();
-            const highlighted = highlightCode(cleanCode, language);
             const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
             
-            return `<div class="code-block">
+            let highlighted;
+            try {
+                if (language === 'xpp26' || language === 'asm') {
+                    highlighted = hljs.highlight(cleanCode, { language, ignoreIllegals: true }).value;
+                } else {
+                    highlighted = escapeHtml(cleanCode);
+                }
+            } catch (e) {
+                highlighted = escapeHtml(cleanCode);
+            }
+            
+            return `<div class="code-block-wrapper">
                 <div class="code-block-header">
                     <span>${language}</span>
                     <button class="copy-btn" onclick="copyCode('${codeId}')">📋 Copy</button>
@@ -587,13 +683,6 @@
         breadcrumb.innerHTML = `Chapter ${chapterNumber} of ${totalChapters}`;
 
         output.scrollTop = 0;
-
-        // Re-highlight code blocks
-        output.querySelectorAll('code').forEach(block => {
-            if (block.className.includes('hljs')) {
-                hljs.highlightElement(block);
-            }
-        });
     }
 
     fetch('docs.txt')
