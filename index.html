@@ -7,40 +7,111 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #1a1a1a;
+            --border-color: #333;
+            --border-light: #3c3c3c;
+            --text-primary: #d4d4d4;
+            --text-muted: #888;
+            --accent: #4ec9b0;
+            --accent-blue: #569cd6;
+            --accent-light: #4fc1ff;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             display: flex;
             height: 100vh;
             overflow: hidden;
-            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light-mode {
+            --bg-primary: #fafafa;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #ffffff;
+            --border-color: #ddd;
+            --border-light: #eee;
+            --text-primary: #333;
+            --text-muted: #999;
+            --accent: #2b8a7a;
+            --accent-blue: #0066cc;
+            --accent-light: #0080ff;
         }
 
         aside {
             width: 320px;
-            background-color: #252526;
-            border-right: 2px solid #333;
+            background-color: var(--bg-secondary);
+            border-right: 2px solid var(--border-color);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
         }
 
         .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #3c3c3c;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-light);
         }
 
         .sidebar-header h1 {
-            margin: 0;
+            margin: 0 0 10px 0;
             font-size: 1.1rem;
-            color: #569cd6;
+            color: var(--accent-blue);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .sidebar-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-light);
+        }
+
+        .theme-toggle {
+            padding: 8px 12px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s, border-color 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--border-light);
         }
 
         .doc-list {
@@ -63,15 +134,19 @@
         }
 
         .doc-item:hover {
-            background-color: #2a2a2b;
+            background-color: var(--border-light);
             color: #fff;
         }
 
         .doc-item.active {
-            background-color: #37373d;
-            color: #4ec9b0;
-            border-left-color: #007acc;
+            background-color: var(--border-light);
+            color: var(--accent);
+            border-left-color: var(--accent-blue);
             font-weight: bold;
+        }
+
+        .doc-item.hidden {
+            display: none;
         }
 
         main {
@@ -79,21 +154,45 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            background-color: #1a1a1a;
+            background-color: var(--bg-tertiary);
+            position: relative;
         }
 
         .view-header {
             padding: 15px 30px;
-            background-color: #1e1e1e;
-            border-bottom: 1px solid #333;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            flex: 1;
         }
 
         .view-title {
             margin: 0;
             font-size: 1.1rem;
-            color: #4ec9b0;
+            color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .breadcrumb {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent-light);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
         }
 
         .output-container {
@@ -104,23 +203,93 @@
             white-space: pre-wrap;
             word-break: break-all;
             line-height: 1.5;
+            position: relative;
         }
 
         .output-container a {
-            color: #4fc1ff;
+            color: var(--accent-light);
             text-decoration: underline;
         }
 
         .output-container a:hover {
-            color: #569cd6;
+            color: var(--accent-blue);
         }
-        
+
+        .code-block {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            padding: 4px 8px;
+            background-color: var(--border-light);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 11px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--accent);
+            color: #000;
+        }
+
+        .copy-btn.copied {
+            background-color: #4ec9b0;
+            color: #000;
+        }
+
         hr {
             border: none;
-            border-top: 2px dashed #3c3c3c;
+            border-top: 2px dashed var(--border-light);
             margin: 20px 0;
         }
 
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 10px 15px;
+            background-color: var(--accent-blue);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 100;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--accent);
+        }
+
+        /* ANSI color classes */
         .ansi-purple { color: #d16dff; }
         .ansi-cyan { color: #4fc1ff; }
         .ansi-darkcyan { color: #208080; }
@@ -132,9 +301,34 @@
         .ansi-underline { text-decoration: underline; }
         
         .ansi-reset {
-            color: #d4d4d4;
+            color: var(--text-primary);
             font-weight: normal;
             text-decoration: none;
+        }
+
+        /* Highlight.js overrides */
+        .hljs {
+            background-color: transparent !important;
+            padding: 0;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
         }
     </style>
 </head>
@@ -143,24 +337,90 @@
 <aside>
     <div class="sidebar-header">
         <h1>X++26 Docs</h1>
+        <div class="sidebar-controls">
+            <input 
+                type="text" 
+                id="searchBox" 
+                class="search-box" 
+                placeholder="Search sections..." 
+                autocomplete="off"
+            >
+            <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">☀️</button>
+        </div>
     </div>
-    <ul id="docList" class="doc-list">
-        </ul>
+    <ul id="docList" class="doc-list"></ul>
 </aside>
 
 <main>
     <div class="view-header">
-        <h2 id="viewTitle" class="view-title">Loading documentation...</h2>
+        <div class="header-content">
+            <h2 id="viewTitle" class="view-title">Loading documentation...</h2>
+            <div id="breadcrumb" class="breadcrumb"></div>
+        </div>
     </div>
     <div id="output" class="output-container"></div>
 </main>
 
+<button id="backToTop" class="back-to-top">↑ Top</button>
+
 <script>
     let chaptersRegistry = [];
+    let currentChapterId = null;
 
     const docList = document.getElementById('docList');
     const viewTitle = document.getElementById('viewTitle');
     const output = document.getElementById('output');
+    const searchBox = document.getElementById('searchBox');
+    const themeToggle = document.getElementById('themeToggle');
+    const backToTop = document.getElementById('backToTop');
+    const breadcrumb = document.getElementById('breadcrumb');
+
+    // Theme management
+    function initializeTheme() {
+        const savedTheme = localStorage.getItem('xpp26-theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            themeToggle.textContent = '🌙';
+        } else {
+            themeToggle.textContent = '☀️';
+        }
+    }
+
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('xpp26-theme', isLight ? 'light' : 'dark');
+        themeToggle.textContent = isLight ? '🌙' : '☀️';
+    });
+
+    // Back to top button
+    output.addEventListener('scroll', () => {
+        if (output.scrollTop > 300) {
+            backToTop.classList.add('show');
+        } else {
+            backToTop.classList.remove('show');
+        }
+    });
+
+    backToTop.addEventListener('click', () => {
+        output.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Search functionality
+    searchBox.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.doc-item');
+        
+        items.forEach(item => {
+            if (query === '') {
+                item.classList.remove('hidden');
+            } else if (item.textContent.toLowerCase().includes(query)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    });
 
     const ansiMap = [
         { regex: /\{ANSI\.PURPLE\}/g, html: '<span class="ansi-purple">' },
@@ -175,13 +435,29 @@
         { regex: /\{ANSI\.END\}/g, html: '</span><span class="ansi-reset">' }
     ];
 
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function highlightCode(code, language = 'xpp26') {
+        try {
+            if (language === 'xpp26') {
+                // Fallback highlighting for X++26
+                return code;
+            }
+            return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+        } catch (e) {
+            return code;
+        }
+    }
+
     function parseAnsi(text) {
         const targetRegex = /\x1b\]8;;([^\\]*?)\x1b\\(.*?)\x1b\]8;;\s*\x1b\\/g;
         let pool = text.replace(targetRegex, function(match, url, linkText) {
             return `__LINK_START__URL="${url}"__LINK_TEXT__${linkText}__LINK_END__`;
         });
 
-        pool = pool.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        pool = escapeHtml(pool);
 
         const tokenRegex = /__LINK_START__URL="([^"]*?)"__LINK_TEXT__(.*?)__LINK_END__/g;
         pool = pool.replace(tokenRegex, function(match, url, linkText) {
@@ -190,12 +466,47 @@
 
         pool = pool.replace(/^(?:\r?\n)?---(?:\r?\n)?$/gm, '<hr>');
 
+        // Code block detection and syntax highlighting
+        pool = pool.replace(/```([\w]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+            const language = lang || 'xpp26';
+            const cleanCode = code.trim();
+            const highlighted = highlightCode(cleanCode, language);
+            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            
+            return `<div class="code-block">
+                <div class="code-block-header">
+                    <span>${language}</span>
+                    <button class="copy-btn" onclick="copyCode('${codeId}')">📋 Copy</button>
+                </div>
+                <pre id="${codeId}"><code class="hljs language-${language}">${highlighted}</code></pre>
+            </div>`;
+        });
+
         ansiMap.forEach(item => {
             pool = pool.replace(item.regex, item.html);
         });
 
         return pool;
     }
+
+    window.copyCode = function(codeId) {
+        const codeElement = document.getElementById(codeId);
+        const text = codeElement.innerText;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied';
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    };
 
     function processPreloadedDocumentation(rawText) {
         chaptersRegistry = [];
@@ -261,6 +572,7 @@
         const targetNode = chaptersRegistry.find(c => c.id === id);
         if (!targetNode) return;
 
+        currentChapterId = id;
 
         document.querySelectorAll('.doc-item').forEach(el => el.classList.remove('active'));
         const activeItem = document.getElementById(`item-${id}`);
@@ -268,7 +580,20 @@
 
         viewTitle.textContent = targetNode.title;
         output.innerHTML = parseAnsi(targetNode.content);
+        
+        // Update breadcrumb
+        const chapterNumber = chaptersRegistry.findIndex(c => c.id === id) + 1;
+        const totalChapters = chaptersRegistry.length;
+        breadcrumb.innerHTML = `Chapter ${chapterNumber} of ${totalChapters}`;
+
         output.scrollTop = 0;
+
+        // Re-highlight code blocks
+        output.querySelectorAll('code').forEach(block => {
+            if (block.className.includes('hljs')) {
+                hljs.highlightElement(block);
+            }
+        });
     }
 
     fetch('docs.txt')
@@ -281,9 +606,12 @@
         })
         .catch(err => {
             viewTitle.textContent = "Error loading system";
-            output.innerHTML = "Error loading <strong>docs.txt</strong>.";
+            output.innerHTML = "<span class='ansi-red'>Error loading <strong>docs.txt</strong>.</span>";
             console.error(err);
         });
+
+    // Initialize theme on page load
+    initializeTheme();
 </script>
 
 </body>
