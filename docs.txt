@@ -180,11 +180,19 @@ Arrays are pointers to the first element of a contiguous block of memory.
     {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
 
 
+{ANSI.BOLD}Example of an array in memory:{ANSI.END}
+
+    {ANSI.CYAN}0x1002 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x1003{ANSI.END} ] {ANSI.GREEN}(&arr[0]){ANSI.END}
+    {ANSI.CYAN}0x1003 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}1{ANSI.END}      ] {ANSI.GREEN}(arr[0]){ANSI.END}
+    {ANSI.CYAN}0x1004 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}2{ANSI.END}      ] {ANSI.GREEN}(arr[1]){ANSI.END}
+    {ANSI.CYAN}0x1005 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}4{ANSI.END}      ] {ANSI.GREEN}(arr[2]){ANSI.END}
+
+
 ==================================================
 Strings
 =======
 
-Strings in X++26 are {ANSI.BOLD}pointers {ANSI.END}to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character ({ANSI.CYAN}0x00000000{ANSI.END}).
+Strings in X++26 are {ANSI.BOLD}pointers{ANSI.END} leading to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character ({ANSI.CYAN}0x00000000{ANSI.END}).
 Like {ANSI.PURPLE}integers {ANSI.END}and {ANSI.PURPLE}booleans{ANSI.END}, each character in the string occupies 1 full 32-bit memory address in the XVM.
 
 * {ANSI.BOLD}Declaration:{ANSI.END}      `{ANSI.BOLD}{ANSI.RED}var{ANSI.END} str: {ANSI.PURPLE}string{ANSI.END}`
@@ -225,6 +233,19 @@ Like {ANSI.PURPLE}integers {ANSI.END}and {ANSI.PURPLE}booleans{ANSI.END}, each c
     {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}     {ANSI.GREEN}; &str[0]{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}ADDI{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
+
+{ANSI.BOLD}Example of a string in memory:{ANSI.END}
+
+    {ANSI.CYAN}0x1006 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x1007{ANSI.END} ] {ANSI.GREEN}(&descriptionVec[0]){ANSI.END}
+    {ANSI.CYAN}0x1007 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x8000{ANSI.END} ] {ANSI.GREEN}(&str[0]){ANSI.END}
+    {ANSI.CYAN}0x1008 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}3{ANSI.END}      ] {ANSI.GREEN}(length+1){ANSI.END}
+    {ANSI.CYAN}0x1009 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}16{ANSI.END}     ] {ANSI.GREEN}(capacity){ANSI.END}
+         .
+         . {ANSI.GREEN}(all addresses in between are irrelevant.){ANSI.END}
+         .
+    {ANSI.CYAN}0x8000 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'H'{ANSI.END}   ] {ANSI.GREEN}(str[0]){ANSI.END}
+    {ANSI.CYAN}0x8001 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'i'{ANSI.END}   ] {ANSI.GREEN}(str[1]){ANSI.END}
+    {ANSI.CYAN}0x8002 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'{ANSI.CYAN}\0{ANSI.YELLOW}'{ANSI.END}  ] {ANSI.GREEN}(str[2]){ANSI.END}
 
 ==================================================
 I/O Handling
@@ -639,4 +660,4 @@ Planned Features
 
 {ANSI.UNDERLINE}1.0.0{ANSI.END}
 * Full XenonOS Support
-* Graphics API
+* Graphics API 
