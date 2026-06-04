@@ -11,6 +11,38 @@ It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/u
 Source Code -> Lexer -> Tokens -> Parser -> AST -> Semantic Analyzer -> Assembly Generator -> Assembly -> Xenon-131 VM.
 
 ==================================================
+Getting Started
+=======
+
+Welcome to {ANSI.BOLD}X++26{ANSI.END}, a statically-typed compiled programming language designed for the {ANSI.CYAN}Xenon-131 Virtual Machine{ANSI.END}.
+
+{ANSI.BOLD}{ANSI.YELLOW}What is X++26?{ANSI.END}
+
+X++26 is a modern systems programming language that combines {ANSI.BOLD}low-level control{ANSI.END} with {ANSI.BOLD}high-level abstractions{ANSI.END}. It emphasizes:
+
+* {ANSI.GREEN}Static Typing{ANSI.END} - Catch errors at compile time, not runtime
+* {ANSI.GREEN}Direct Memory Access{ANSI.END} - Full control over pointers and memory addresses
+* {ANSI.GREEN}Stack-Based Execution{ANSI.END} - Efficient computation model
+* {ANSI.GREEN}Compiled Output{ANSI.END} - Fast, optimized code for the XVM
+
+{ANSI.BOLD}{ANSI.YELLOW}Downloading the CLI{ANSI.END}
+
+{ANSI.BLUE}The CLI is currently unavailable for download until OS Wars 26 starts.{ANSI.END}
+
+{ANSI.BOLD}{ANSI.YELLOW}Hello World{ANSI.END}
+
+Let's create a new {ANSI.BOLD}.xpp{ANSI.END} file with the name {ANSI.RED}my_first_program.xpp{ANSI.END}.
+Enter this code into the file:
+
+```xpp26
+out << "Hello, World!\n"
+```
+
+Don't worry if you don't understand the code above - we will discuss it in detail in later chapters.
+
+Congratulations! You have now written and executed your first X++ program.
+
+==================================================
 Data Types & Literals
 ========
 
@@ -235,7 +267,7 @@ PUSH 2
 LOAD 0x1002
 ADDI
 PUSH 4
-STOREIND
+STREIND
 ```
 
 {ANSI.BOLD}Access Element{ANSI.END}
@@ -553,7 +585,7 @@ for (start_expr; end_expr; step_expr) {
 :beginfor
 ; end_expr
 PUSH 0
-EQ
+IEQ
 BRNZ :endfor
 ; body
 ; step_expr
@@ -581,7 +613,7 @@ This makes the while loop a {ANSI.UNDERLINE}pre-condition{ANSI.END} loop.
 :beginwhile
 ; condition
 PUSH 0
-EQ
+IEQ
 BRNZ :endwhile
 ; body
 JUMP :beginwhile
@@ -609,7 +641,7 @@ This makes the repeat loop a {ANSI.UNDERLINE}post-condition{ANSI.END} loop, as t
 ; body
 ; condition
 PUSH 0
-EQ
+IEQ
 BRZ :beginrepeat
 
 ; rest of the program...
@@ -757,8 +789,8 @@ Value = (-1)^S * 2^(E + 127) * (1 + M)
 
 {ANSI.BOLD}Boolean{ANSI.END}
 * Booleans are represented using 2 values:
-  - false = 0x00000000 (0)
-  - true  = 0xFFFFFFFF (-1)
+  - {ANSI.PURPLE}false{ANSI.END} = 0x00000000 (0)
+  - {ANSI.PURPLE}true{ANSI.END}  = 0xFFFFFFFF (-1)
 * This allows logical and bitwise AND, OR, NOT, and XOR to share the same opcodes.
 
 {ANSI.BOLD}Pointer{ANSI.END} - not implemented
