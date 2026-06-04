@@ -3,7 +3,7 @@ Overview
 ========
 
 X++26 is a statically-typed compiled programming language that targets the Xenon-131 Virtual Machine (XVM).
-It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/users/XenonOS26/\XenonOS]8;;\{ANSI.END} in {ANSI.CYAN}]8;;https://scratch.mit.edu/users/OSWars-26/\OS Wars 26]8;;\{ANSI.END}.
+It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/users/XenonOS26/\XenonOS]8;;\{ANSI.END} in {ANSI.CYAN}]8;;https://scratch.mit.edu/users/OSWars-26/\OS Wars 26]8;;\{ANSI.END}.
 
 ---
 
