@@ -592,22 +592,27 @@ Syscalls
 
    {ANSI.CYAN}5{ANSI.END} {ANSI.GREEN}INTTOSTR{ANSI.END}  : Converts the integer at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}5{ANSI.END}
 
    {ANSI.CYAN}6{ANSI.END} {ANSI.GREEN}FLOATTOSTR{ANSI.END}: Converts the float at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}float{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}float{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}6{ANSI.END}
 
    {ANSI.CYAN}7{ANSI.END} {ANSI.GREEN}BOOLTOSTR{ANSI.END} : Converts the boolean at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}bool{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}bool{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}7{ANSI.END}
 
    {ANSI.CYAN}8{ANSI.END} {ANSI.GREEN}INTTOHEX{ANSI.END}  : Converts the integer at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}8{ANSI.END}
+
+   {ANSI.CYAN}9{ANSI.END} {ANSI.GREEN}PUT_CHAR{ANSI.END}  : Outputs the character on top of the stack.
+
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}char{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}8{ANSI.END}
 
 
@@ -637,7 +642,7 @@ Syscalls
 
   {ANSI.CYAN}30{ANSI.END} {ANSI.GREEN}SYS_EXIT{ANSI.END}: Pops the exit code from the stack and commands the VM to terminate the current process based on it.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}30{ANSI.END}
 
 {ANSI.BOLD}Graphics Syscalls{ANSI.END}
@@ -645,8 +650,8 @@ Syscalls
 {ANSI.BOLD}Other Syscalls{ANSI.END}
   {ANSI.CYAN}60{ANSI.END} {ANSI.GREEN}REQUEST{ANSI.END}: Pops the request backend id and destination from the stack and sends a request to that backend using cloud variables. The result of that request would be stored at address {ANSI.CYAN}addr{ANSI.END}.
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}addr{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.YELLOW}addr{ANSI.END}
     {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}60{ANSI.END}
 
 ==================================================
@@ -669,4 +674,4 @@ Planned Features
 
 {ANSI.UNDERLINE}1.0.0{ANSI.END}
 * Full XenonOS Support
-* Graphics API 
+* Graphics API
