@@ -3,7 +3,7 @@ Overview
 ========
 
 X++26 is a statically-typed compiled programming language that targets the Xenon-131 Virtual Machine (XVM).
-It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/users/XenonOS26/\XenonOS]8;;\{ANSI.END} in {ANSI.CYAN}]8;;https://scratch.mit.edu/users/OSWars-26/\OS Wars 26]8;;\{ANSI.END}.
+It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/users/XenonOS26/\XenonOS]8;;\{ANSI.END} in {ANSI.CYAN}]8;;https://scratch.mit.edu/users/OSWars-26/\OS Wars 26]8;;\{ANSI.END}.
 
 ---
 
@@ -23,20 +23,24 @@ Data Types & Literals
 * {ANSI.PURPLE}bool{ANSI.END}: Boolean value {ANSI.DARKCYAN}(true / false){ANSI.END}
 * {ANSI.PURPLE}array{ANSI.END}: Pointer to the first element of the array
 * {ANSI.PURPLE}string{ANSI.END}: Pointer leading to null-terminated sequence of characters surrounded by double quotes {ANSI.DARKCYAN}("Hello!", "abc"){ANSI.END}
-* {ANSI.PURPLE}char{ANSI.END}: Integer under the hood, surrounded by single quotes {ANSI.DARKCYAN}('a', '@', '1'){ANSI.END}
+* {ANSI.PURPLE}char{ANSI.END}: Integer under the hood, surrounded by single quotes {{ANSI.DARKCYAN}('a', '@', '1'){ANSI.END}
 
 {ANSI.BOLD}Type Casting{ANSI.END}
 Syntax:
 
-    ({ANSI.PURPLE}type name{ANSI.END})({ANSI.PURPLE}expr{ANSI.END})
+```xpp26
+(type name)(expr)
+```
 
 Examples:
 
-    ({ANSI.PURPLE}int{ANSI.END})   {ANSI.CYAN}3.0{ANSI.END}       {ANSI.GREEN}# 3{ANSI.END}
-    ({ANSI.PURPLE}int{ANSI.END})   {ANSI.CYAN}-2.71828{ANSI.END}  {ANSI.GREEN}# -2 (truncated){ANSI.END}
-    ({ANSI.PURPLE}float{ANSI.END}) {ANSI.CYAN}5{ANSI.END}         {ANSI.GREEN}# 5.0{ANSI.END}
-    ({ANSI.PURPLE}bool{ANSI.END})  {ANSI.CYAN}0{ANSI.END}         {ANSI.GREEN}# false{ANSI.END}
-    ({ANSI.PURPLE}bool{ANSI.END})  {ANSI.CYAN}12345{ANSI.END}     {ANSI.GREEN}# true (any non-zero value returns true){ANSI.END}
+```xpp26
+(int)   3.0       # 3
+(int)   -2.71828  # -2 (truncated)
+(float) 5         # 5.0
+(bool)  0         # false
+(bool)  12345     # true (any non-zero value returns true)
+```
 
 ==================================================
 Operators & Precedence
@@ -56,32 +60,52 @@ Operators & Precedence
 10. {ANSI.CYAN}Logical AND{ANSI.END}: {ANSI.RED}&&{ANSI.END}
 11. {ANSI.CYAN}Logical XOR{ANSI.END}: {ANSI.RED}^^{ANSI.END}
 12. {ANSI.CYAN}Logical OR{ANSI.END}: {ANSI.RED}||{ANSI.END}
-13. {ANSI.CYAN}Assignment{ANSI.END}: {ANSI.RED}+={ANSI.END}, {ANSI.RED}-={ANSI.END}, {ANSI.RED}*={ANSI.END}, {ANSI.RED}/={ANSI.END}, {ANSI.RED}%={ANSI.END}, {ANSI.RED}={ANSI.END} 
+13. {ANSI.CYAN}Assignment{ANSI.END}: {ANSI.RED}+={ANSI.END}, {ANSI.RED}-={ANSI.END}, {ANSI.RED}*={ANSI.END}, {ANSI.RED}/={ANSI.END}, {ANSI.RED}%={ANSI.END}, {ANSI.RED}={ANSI.END}
 
 ==================================================
 Variables
 ========
 
-* {ANSI.BOLD}Declaration{ANSI.END}: `{ANSI.BOLD}{ANSI.RED}var {ANSI.END}x: {ANSI.PURPLE}int{ANSI.END}` 
-* {ANSI.BOLD}Assignment{ANSI.END}:  `x = {ANSI.CYAN}5{ANSI.END}`
+* {ANSI.BOLD}Declaration{ANSI.END}: `var x: int`
+* {ANSI.BOLD}Assignment{ANSI.END}:  `x = 5`
 * {ANSI.BOLD}Access:{ANSI.END}      `x`
 
 Each variable corresponds to a memory address in the Xenon-131 VM.
 
-{ANSI.YELLOW}Here are some assembly instructions emitted from the above examples:{ANSI.END}
+{ANSI.YELLOW}Here are some code examples with their assembly output:{ANSI.END}
+
 {ANSI.BOLD}Declaration{ANSI.END}
 
-    {ANSI.GREEN}; Nothing! This is for the semantic analyzer to handle.
-    ; The variable `x` would be assigned to the next free address (0x1000 in this case).{ANSI.END}
+```xpp26
+var x: int
+```
+
+{ANSI.YELLOW}Assembly Output:{ANSI.END}
+```asm
+; Nothing! This is for the semantic analyzer to handle.
+; The variable `x` would be assigned to the next free address (0x1000 in this case).
+```
 
 {ANSI.BOLD}Assignment{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}5{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1000{ANSI.END} {ANSI.GREEN}; x{ANSI.END}
+```xpp26
+x = 5
+```
+
+```asm
+PUSH 5
+STORE 0x1000  ; x
+```
 
 {ANSI.BOLD}Access{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1000{ANSI.END} {ANSI.GREEN}; x{ANSI.END}
+```xpp26
+x
+```
+
+```asm
+LOAD 0x1000  ; x
+```
 
 ==================================================
 Pointers
@@ -90,48 +114,71 @@ Pointers
 A pointer is a special variable that holds the address of a value.
 Arrays and strings are examples of pointers in X++26.
 
-* {ANSI.BOLD}Declaration:{ANSI.END}  `{ANSI.BOLD}{ANSI.RED}var{ANSI.END} ptr: {ANSI.PURPLE}int{ANSI.RED}*{ANSI.END}`
-* {ANSI.BOLD}Assignment:{ANSI.END}   `ptr = {ANSI.RED}&{ANSI.END}x     {ANSI.GREEN}# assign address to pointer{ANSI.END}`
-                `{ANSI.RED}*{ANSI.END}ptr = {ANSI.PURPLE}expr{ANSI.END}  {ANSI.GREEN}# modify value at pointer address{ANSI.END}`
-* {ANSI.BOLD}Access Value:{ANSI.END} `{ANSI.RED}*{ANSI.END}ptr`
+* {ANSI.BOLD}Declaration:{ANSI.END}  `var ptr: int*`
+* {ANSI.BOLD}Assignment:{ANSI.END}   `ptr = &x  # assign address to pointer`
+                `*ptr = expr  # modify value at pointer address`
+* {ANSI.BOLD}Access Value:{ANSI.END} `*ptr`
 
-{ANSI.YELLOW}Here are some assembly instructions emitted from the above examples:{ANSI.END}
-{ANSI.BOLD}Declaration:{ANSI.END}
+{ANSI.YELLOW}Here are code examples with their assembly output:{ANSI.END}
 
-    {ANSI.GREEN}; Nothing! This is for the semantic analyzer to handle.
-    ; The variable `ptr` would be assigned to the next free address (0x1001 in this case).{ANSI.END}
+{ANSI.BOLD}Declaration{ANSI.END}
 
-{ANSI.BOLD}Assignment:{ANSI.END}
+```xpp26
+var ptr: int*
+```
 
-    {ANSI.GREEN}; ptr = &x{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x1000{ANSI.END}  {ANSI.GREEN}; &x{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1001{ANSI.END} {ANSI.GREEN}; ptr{ANSI.END}
+```asm
+; Nothing! This is for the semantic analyzer to handle.
+; The variable `ptr` would be assigned to the next free address (0x1001 in this case).
+```
 
-    {ANSI.GREEN}; *ptr = expr{ANSI.END}
-    {ANSI.GREEN}; expr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1001{ANSI.END} {ANSI.GREEN}; ptr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STREIND{ANSI.END}
+{ANSI.BOLD}Assignment{ANSI.END}
+
+```xpp26
+ptr = &x
+*ptr = 42
+```
+
+```asm
+; ptr = &x
+PUSH 0x1000  ; &x
+STORE 0x1001 ; ptr
+
+; *ptr = 42
+PUSH 42
+LOAD 0x1001  ; ptr
+STREIND
+```
 
 {ANSI.BOLD}Access Value:{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1001{ANSI.END} {ANSI.GREEN}; ptr{ANSI.GREEN}{ANSI.END}{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
 
-Here is an example program using pointers:
+```xpp26
+*ptr
+```
 
-    {ANSI.BOLD}{ANSI.RED}var{ANSI.END} x: {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}var{ANSI.END} ptr: {ANSI.PURPLE}int{ANSI.END}{ANSI.RED}*{ANSI.END}
+```asm
+LOAD 0x1001  ; ptr
+LOADIND
+```
 
-    x = {ANSI.CYAN}5{ANSI.END}
-    ptr = {ANSI.RED}&{ANSI.END}x
+{ANSI.YELLOW}Example program using pointers:{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} ptr {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}'{ANSI.CYAN}\n{ANSI.YELLOW}'{ANSI.END}   {ANSI.GREEN}# 0x1000{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} {ANSI.RED}*{ANSI.END}ptr {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}'{ANSI.CYAN}\n{ANSI.YELLOW}'{ANSI.END}  {ANSI.GREEN}# 5{ANSI.END}
+```xpp26
+var x: int
+var ptr: int*
 
-    x = {ANSI.CYAN}7{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} {ANSI.RED}*{ANSI.END}ptr {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}'{ANSI.CYAN}\n{ANSI.YELLOW}'{ANSI.END}  {ANSI.GREEN}# 7{ANSI.END}
+x = 5
+ptr = &x
 
-    {ANSI.RED}*{ANSI.END}ptr = {ANSI.CYAN}19{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} x {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}'{ANSI.CYAN}\n{ANSI.YELLOW}'{ANSI.END}     {ANSI.GREEN}# 19{ANSI.END}
+out << ptr << '\n'   # 0x1000
+out << *ptr << '\n'  # 5
+
+x = 7
+out << *ptr << '\n'  # 7
+
+*ptr = 19
+out << x << '\n'     # 19
+```
 
 ==================================================
 Arrays
@@ -139,197 +186,305 @@ Arrays
 
 Arrays are pointers to the first element of a contiguous block of memory.
 
-* {ANSI.BOLD}Declaration:{ANSI.END}    `{ANSI.BOLD}{ANSI.RED}array {ANSI.END}arr: {ANSI.PURPLE}int{ANSI.END}[{ANSI.CYAN}3{ANSI.END}]`
-* {ANSI.BOLD}Initialization:{ANSI.END} `arr = [{ANSI.CYAN}1{ANSI.END}, {ANSI.CYAN}2{ANSI.END}, {ANSI.CYAN}3{ANSI.END}]`
-* {ANSI.BOLD}Set Element:{ANSI.END}    `arr[{ANSI.CYAN}2{ANSI.END}] = {ANSI.CYAN}4{ANSI.END}  {ANSI.GREEN}# arr = [1, 2, 4]{ANSI.END}`
-* {ANSI.BOLD}Access Element:{ANSI.END} `arr[{ANSI.CYAN}2{ANSI.END}]  {ANSI.GREEN}# 4{ANSI.END}`
+* {ANSI.BOLD}Declaration:{ANSI.END}    `array arr: int[3]`
+* {ANSI.BOLD}Initialization:{ANSI.END} `arr = [1, 2, 3]`
+* {ANSI.BOLD}Set Element:{ANSI.END}    `arr[2] = 4  # arr = [1, 2, 4]`
+* {ANSI.BOLD}Access Element:{ANSI.END} `arr[2]  # 4`
 
-{ANSI.YELLOW}Here are some assembly instructions emitted from the above examples:{ANSI.END}
-{ANSI.BOLD}Declaration:{ANSI.END}
+{ANSI.YELLOW}Here are code examples with their assembly output:{ANSI.END}
 
-    {ANSI.GREEN}; Nothing! This is for the semantic analyzer to handle.
-    ; The array pointer `arr` would be assigned to the next free address (0x1002 in this case).
-    ; The next free address would be 0x1006, as arr[] occupies 3+1=4 memory addresses.
-{ANSI.END}
-{ANSI.BOLD}Initialization:{ANSI.END}
+{ANSI.BOLD}Declaration{ANSI.END}
 
-    {ANSI.GREEN}; store pointer{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x1003{ANSI.END}  {ANSI.GREEN}; &arr[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1002{ANSI.END} {ANSI.GREEN}; arr{ANSI.END}
+```xpp26
+array arr: int[3]
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}1{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1003{ANSI.END} {ANSI.GREEN}; arr[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1004{ANSI.END} {ANSI.GREEN}; arr[1]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}3{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1005{ANSI.END} {ANSI.GREEN}; arr[2]{ANSI.END}
+```asm
+; Nothing! This is for the semantic analyzer to handle.
+; The array pointer `arr` would be assigned to the next free address (0x1002 in this case).
+; The next free address would be 0x1006, as arr[] occupies 3+1=4 memory addresses.
+```
 
-{ANSI.BOLD}Set Element:{ANSI.END}
+{ANSI.BOLD}Initialization{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1002{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}ADDI{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}4{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STOREIND{ANSI.END}    
+```xpp26
+arr = [1, 2, 3]
+```
 
-{ANSI.BOLD}Access Element:{ANSI.END}
+```asm
+; store pointer
+PUSH 0x1003  ; &arr[0]
+STORE 0x1002 ; arr
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1002{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}ADDI{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
+PUSH 1
+STORE 0x1003 ; arr[0]
+PUSH 2
+STORE 0x1004 ; arr[1]
+PUSH 3
+STORE 0x1005 ; arr[2]
+```
 
+{ANSI.BOLD}Set Element{ANSI.END}
+
+```xpp26
+arr[2] = 4
+```
+
+```asm
+PUSH 2
+LOAD 0x1002
+ADDI
+PUSH 4
+STOREIND
+```
+
+{ANSI.BOLD}Access Element{ANSI.END}
+
+```xpp26
+arr[2]
+```
+
+```asm
+PUSH 2
+LOAD 0x1002
+ADDI
+LOADIND
+```
 
 {ANSI.BOLD}Example of an array in memory:{ANSI.END}
 
-    {ANSI.CYAN}0x1002 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x1003{ANSI.END} ] {ANSI.GREEN}(&arr[0]){ANSI.END}
-    {ANSI.CYAN}0x1003 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}1{ANSI.END}      ] {ANSI.GREEN}(arr[0]){ANSI.END}
-    {ANSI.CYAN}0x1004 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}2{ANSI.END}      ] {ANSI.GREEN}(arr[1]){ANSI.END}
-    {ANSI.CYAN}0x1005 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}4{ANSI.END}      ] {ANSI.GREEN}(arr[2]){ANSI.END}
-
+```
+0x1002 [ ptr -> 0x1003 ] (&arr[0])
+0x1003 [ int -> 1      ] (arr[0])
+0x1004 [ int -> 2      ] (arr[1])
+0x1005 [ int -> 4      ] (arr[2])
+```
 
 ==================================================
 Strings
 =======
 
-Strings in X++26 are {ANSI.BOLD}pointers{ANSI.END} leading to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character ({ANSI.CYAN}0x00000000{ANSI.END}).
-Like {ANSI.PURPLE}integers {ANSI.END}and {ANSI.PURPLE}booleans{ANSI.END}, each character in the string occupies 1 full 32-bit memory address in the XVM.
+Strings in X++26 are {ANSI.BOLD}pointers{ANSI.END} leading to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character.
+Like {ANSI.PURPLE}integers{ANSI.END} and {{ANSI.PURPLE}booleans{ANSI.END}, each character in the string occupies 1 full 32-bit memory address in the XVM.
 
-* {ANSI.BOLD}Declaration:{ANSI.END}      `{ANSI.BOLD}{ANSI.RED}var{ANSI.END} str: {ANSI.PURPLE}string{ANSI.END}`
-* {ANSI.BOLD}Assignment:{ANSI.END}       `str = {ANSI.YELLOW}"Hi"{ANSI.END}`
-* {ANSI.BOLD}Access Character:{ANSI.END} `str[{ANSI.CYAN}1{ANSI.END}]  {ANSI.GREEN}# 'i'{ANSI.END}`
+* {ANSI.BOLD}Declaration:{ANSI.END}      `var str: string`
+* {ANSI.BOLD}Assignment:{ANSI.END}       `str = "Hi"`
+* {ANSI.BOLD}Access Character:{ANSI.END} `str[1]  # 'i'`
 
-{ANSI.YELLOW}Here are some assembly instructions emitted from the above examples:{ANSI.END}
-{ANSI.BOLD}Declaration:{ANSI.END}
+{ANSI.YELLOW}Here are code examples with their assembly output:{ANSI.END}
 
-    {ANSI.GREEN}; Nothing! This is for the semantic analyzer to handle.
-    ; The string pointer `str` would be assigned to the next free address (0x1006 in this case).
-    ; The next free address would be 0x100A, as the description vector for a string occupies 3 addresses and the string pointer occupies 1 address.
-{ANSI.END}
-{ANSI.BOLD}Assignment:{ANSI.END}
+{ANSI.BOLD}Declaration{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x1007{ANSI.END}  {ANSI.GREEN}; & str.descriptionVec[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END}{ANSI.END} {ANSI.CYAN}0x1006{ANSI.END} {ANSI.GREEN}; str{ANSI.END}
+```xpp26
+var str: string
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}72{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x8000{ANSI.END} {ANSI.GREEN}; str[0] -> 'H'{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}105{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x8001{ANSI.END} {ANSI.GREEN}; str[1] -> 'i'{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x8002{ANSI.END} {ANSI.GREEN}; str[2] -> '\0'{ANSI.END}
+```asm
+; Nothing! This is for the semantic analyzer to handle.
+; The string pointer `str` would be assigned to the next free address (0x1006 in this case).
+; The next free address would be 0x100A, as the description vector for a string occupies 3 addresses.
+```
 
-    {ANSI.GREEN}; initialize str.descriptionVec{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x8000{ANSI.END}  {ANSI.GREEN}; str[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1007{ANSI.END} {ANSI.GREEN}; str.descriptionVec[0] = &str[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}3{ANSI.END}       {ANSI.GREEN}; length including '\0'{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1008{ANSI.END} {ANSI.GREEN}; str.descriptionVec[1] = str.length
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END}{ANSI.END} {ANSI.CYAN}16{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}STORE{ANSI.END} {ANSI.CYAN}0x1009{ANSI.END} {ANSI.GREEN}; str.descriptionVec[2] = str.capacity (16 * ceil(str.length / 16)){ANSI.END}
+{ANSI.BOLD}Assignment{ANSI.END}
 
-{ANSI.BOLD}Access Character:{ANSI.END}
+```xpp26
+str = "Hi"
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}1{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x1006{ANSI.END} {ANSI.GREEN}; &str.descriptionVec[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}     {ANSI.GREEN}; &str[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}ADDI{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}
+```asm
+PUSH 0x1007  ; & str.descriptionVec[0]
+STORE 0x1006 ; str
+
+PUSH 72      ; 'H'
+STORE 0x8000 ; str[0] -> 'H'
+PUSH 105     ; 'i'
+STORE 0x8001 ; str[1] -> 'i'
+PUSH 0
+STORE 0x8002 ; str[2] -> '\0'
+
+; initialize str.descriptionVec
+PUSH 0x8000  ; str[0]
+STORE 0x1007 ; str.descriptionVec[0] = &str[0]
+PUSH 3       ; length including '\0'
+STORE 0x1008 ; str.descriptionVec[1] = str.length
+PUSH 16
+STORE 0x1009 ; str.descriptionVec[2] = str.capacity
+```
+
+{ANSI.BOLD}Access Character{ANSI.END}
+
+```xpp26
+str[1]
+```
+
+```asm
+PUSH 1
+LOAD 0x1006  ; &str.descriptionVec[0]
+LOADIND      ; &str[0]
+ADDI
+LOADIND
+```
 
 {ANSI.BOLD}Example of a string in memory:{ANSI.END}
 
-    {ANSI.CYAN}0x1006 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x1007{ANSI.END} ] {ANSI.GREEN}(&descriptionVec[0]){ANSI.END}
-    {ANSI.CYAN}0x1007 {ANSI.END}[ {ANSI.PURPLE}ptr{ANSI.END} -> {ANSI.CYAN}0x8000{ANSI.END} ] {ANSI.GREEN}(&str[0]){ANSI.END}
-    {ANSI.CYAN}0x1008 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}3{ANSI.END}      ] {ANSI.GREEN}(length+1){ANSI.END}
-    {ANSI.CYAN}0x1009 {ANSI.END}[ {ANSI.PURPLE}int{ANSI.END} -> {ANSI.CYAN}16{ANSI.END}     ] {ANSI.GREEN}(capacity){ANSI.END}
-         .
-         . {ANSI.GREEN}(all addresses in between are irrelevant.){ANSI.END}
-         .
-    {ANSI.CYAN}0x8000 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'H'{ANSI.END}   ] {ANSI.GREEN}(str[0]){ANSI.END}
-    {ANSI.CYAN}0x8001 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'i'{ANSI.END}   ] {ANSI.GREEN}(str[1]){ANSI.END}
-    {ANSI.CYAN}0x8002 {ANSI.END}[ {ANSI.PURPLE}char{ANSI.END} -> {ANSI.YELLOW}'{ANSI.CYAN}\0{ANSI.YELLOW}'{ANSI.END}  ] {ANSI.GREEN}(str[2]){ANSI.END}
+```
+0x1006 [ ptr -> 0x1007 ] (&descriptionVec[0])
+0x1007 [ ptr -> 0x8000 ] (&str[0])
+0x1008 [ int -> 3      ] (length+1)
+0x1009 [ int -> 16     ] (capacity)
+       .
+       . (all addresses in between are irrelevant)
+       .
+0x8000 [ char -> 'H'   ] (str[0])
+0x8001 [ char -> 'i'   ] (str[1])
+0x8002 [ char -> '\0'  ] (str[2])
+```
 
 ==================================================
 I/O Handling
 ========
 
 {ANSI.BOLD}Output{ANSI.END}
-Use the {ANSI.BOLD}{ANSI.RED}out{ANSI.END} statement to output values to the terminal as a string (syntactically similar to C++'s {ANSI.PURPLE}std::ostream{ANSI.END}):
+Use the {ANSI.BOLD}out{ANSI.END} statement to output values to the terminal as a string (syntactically similar to C++'s std::ostream):
 
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} val1 {ANSI.PURPLE}<<{ANSI.END} val2 {ANSI.BLUE}...{ANSI.END}
+```xpp26
+out << val1 << val2
+```
 
 {ANSI.YELLOW}Example:{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}"Hello,"{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}" World!{ANSI.CYAN}\n{ANSI.YELLOW}"{ANSI.END}
+```xpp26
+out << "Hello," << " World!\n"
+```
 
 {ANSI.BOLD}{ANSI.YELLOW}OUTPUT{ANSI.END}
 Hello, World!
 
 {ANSI.BOLD}Input{ANSI.END}
-Use the {ANSI.BOLD}{ANSI.RED}in{ANSI.END} statement to request user input from the terminal as a string (syntactically similar to C++'s {ANSI.PURPLE}std::istream{ANSI.END}):
+Use the {ANSI.BOLD}in{ANSI.END} statement to request user input from the terminal as a string (syntactically similar to C++'s std::istream):
 
-    {ANSI.BOLD}{ANSI.RED}in{ANSI.END} {ANSI.PURPLE}>>{ANSI.END} var
+```xpp26
+in >> var
+```
 
 {ANSI.YELLOW}Example:{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}var{ANSI.END} message: {ANSI.PURPLE}string{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}in{ANSI.END} {ANSI.PURPLE}>>{ANSI.END} message
-    {ANSI.BOLD}{ANSI.RED}out{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}"You have entered: "{ANSI.END} {ANSI.PURPLE}<<{ANSI.END} message {ANSI.PURPLE}<<{ANSI.END} {ANSI.YELLOW}'{ANSI.CYAN}\n{ANSI.YELLOW}'{ANSI.END}
+```xpp26
+var message: string
+in >> message
+out << "You have entered: " << message << '\n'
+```
 
 {ANSI.BOLD}{ANSI.YELLOW}INPUT{ANSI.END}
 Lorem ipsum
+
 {ANSI.BOLD}{ANSI.YELLOW}OUTPUT{ANSI.END}
 You have entered: Lorem ipsum
-
 
 ==================================================
 I/O Assembly
 ========
 
-{ANSI.BOLD}Output{ANSI.END}
-If the value to output is a string:
+{ANSI.BOLD}Output String{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str.descriptionVec[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOADIND{ANSI.END}     {ANSI.GREEN}; &str[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}       {ANSI.GREEN}; output syscall{ANSI.END}
+```xpp26
+out << str
+```
 
-If the value to output is an array of characters:
+```asm
+LOAD &str.descriptionVec[0]
+LOADIND      ; &str[0]
+SYS 1        ; output syscall
+```
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&char_array[0]{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}       {ANSI.GREEN}; output syscall{ANSI.END}
+{ANSI.BOLD}Output Character Array{ANSI.END}
 
-If the value to output is a character:
+```xpp26
+out << char_array
+```
 
-    {ANSI.GREEN}; assume character is already on top of stack{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}9{ANSI.END} {ANSI.GREEN}; dedicated put_char syscall{ANSI.END}
+```asm
+LOAD &char_array[0]
+SYS 1  ; output syscall
+```
 
-If the value to output is an integer or float:
+{ANSI.BOLD}Output Character{ANSI.END}
 
-    {ANSI.GREEN}; assume value is already on top of stack{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}5{ANSI.END}       {ANSI.GREEN}; inttostr syscall, can replace with `SYS 6` for floattostr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x0F00{ANSI.END} {ANSI.GREEN}; dedicated result string buffer{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}       {ANSI.GREEN}; output syscall{ANSI.END}
+```xpp26
+out << 'A'
+```
 
-If the value to output is a boolean:
+```asm
+; assume character is already on top of stack
+SYS 9  ; dedicated put_char syscall
+```
 
-    {ANSI.GREEN}; assume value is already on top of stack{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}7{ANSI.END}       {ANSI.GREEN}; booltostr syscall{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x0F00{ANSI.END} {ANSI.GREEN}; dedicated result string buffer{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}       {ANSI.GREEN}; output syscall{ANSI.END}
+{ANSI.BOLD}Output Integer{ANSI.END}
 
-If the value to output is a pointer:
+```xpp26
+out << 42
+```
 
-    {ANSI.GREEN}; assume value is already on top of stack{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}8{ANSI.END}       {ANSI.GREEN}; inttohex syscall{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}0x0F00{ANSI.END} {ANSI.GREEN}; dedicated result string buffer{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}       {ANSI.GREEN}; output syscall{ANSI.END}
+```asm
+; assume value is already on top of stack
+SYS 5          ; inttostr syscall
+PUSH 0x0F00    ; dedicated result string buffer
+SYS 1          ; output syscall
+```
+
+{ANSI.BOLD}Output Float{ANSI.END}
+
+```xpp26
+out << 3.14
+```
+
+```asm
+; assume value is already on top of stack
+SYS 6          ; floattostr syscall
+PUSH 0x0F00    ; dedicated result string buffer
+SYS 1          ; output syscall
+```
+
+{ANSI.BOLD}Output Boolean{ANSI.END}
+
+```xpp26
+out << true
+```
+
+```asm
+; assume value is already on top of stack
+SYS 7          ; booltostr syscall
+PUSH 0x0F00    ; dedicated result string buffer
+SYS 1          ; output syscall
+```
+
+{ANSI.BOLD}Output Pointer{ANSI.END}
+
+```xpp26
+out << ptr
+```
+
+```asm
+; assume value is already on top of stack
+SYS 8          ; inttohex syscall
+PUSH 0x0F00    ; dedicated result string buffer
+SYS 1          ; output syscall
+```
 
 The semantic analyzer will handle these cases automatically.
 
 ---
 
-{ANSI.BOLD}Input{ANSI.END}
+{ANSI.BOLD}Input String{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.CYAN}0x100A{ANSI.END} {ANSI.GREEN}; &message{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}2{ANSI.END}       {ANSI.GREEN}; input syscall{ANSI.END}
+```xpp26
+in >> message
+```
+
+```asm
+LOAD 0x100A  ; &message
+SYS 2        ; input syscall
+```
 
 ==================================================
 Implicit Type Conversions
@@ -338,37 +493,40 @@ Implicit Type Conversions
 X++26 performs implicit widening conversions but never implicit narrowing conversions.
 
 {ANSI.BOLD}Allowed:{ANSI.END}
-    {ANSI.PURPLE}int{ANSI.END} + {ANSI.PURPLE}float{ANSI.END} {ANSI.YELLOW}->{ANSI.END} {ANSI.PURPLE}float{ANSI.END}
-    {ANSI.PURPLE}float{ANSI.END} + {ANSI.PURPLE}int{ANSI.END} {ANSI.YELLOW}->{ANSI.END} {ANSI.PURPLE}float{ANSI.END}
+- int + float -> float
+- float + int -> float
 
-{ANSI.BOLD}{ANSI.BLUE}Example 1:{ANSI.END}
+{ANSI.BOLD}Example 1:{ANSI.END}
 
-    {ANSI.CYAN}5{ANSI.END} + {ANSI.CYAN}3.14{ANSI.END}
-    ^     ^
-   {ANSI.PURPLE}int  float{ANSI.END}
+```xpp26
+5 + 3.14
+```
 
 {ANSI.YELLOW}Compiler output:{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}5{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}I2F{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.CYAN}1078523331{ANSI.END} {ANSI.GREEN}; 0x4048F5C3 -> 3.14{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}ADDF{ANSI.END}
+```asm
+PUSH 5
+I2F
+PUSH 1078523331  ; 0x4048F5C3 -> 3.14
+ADDF
+```
 
-{ANSI.YELLOW}Result type:{ANSI.END}
-    {ANSI.PURPLE}float{ANSI.END}
+{{ANSI.YELLOW}Result type: float{ANSI.END}
 
-{ANSI.YELLOW}Disallowed:{ANSI.END}
+{{ANSI.YELLOW}Disallowed: float -> int (requires explicit cast){ANSI.END}
 
-    {ANSI.PURPLE}float{ANSI.END} {ANSI.YELLOW}->{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
+{ANSI.BOLD}Example 2:{ANSI.END}
 
-{ANSI.BOLD}{ANSI.BLUE}Example 2:{ANSI.END}
-
-    {ANSI.BOLD}{ANSI.RED}var{ANSI.END} x: {ANSI.PURPLE}int{ANSI.END}
-    x = {ANSI.CYAN}3.14{ANSI.END}  {ANSI.GREEN}# error!{ANSI.END}
+```xpp26
+var x: int
+x = 3.14  # error!
+```
 
 This requires an explicit conversion:
 
-    x = ({ANSI.PURPLE}int{ANSI.END}) {ANSI.CYAN}3.14{ANSI.END}
+```xpp26
+x = (int) 3.14
+```
 
 ==================================================
 Iteration
@@ -377,312 +535,388 @@ Iteration
 {ANSI.BOLD}For Loop{ANSI.END}
 Syntax:
 
-    {ANSI.BOLD}{ANSI.RED}for{ANSI.END} ({ANSI.PURPLE}start_expr{ANSI.END}; {ANSI.PURPLE}end_expr{ANSI.END}; {ANSI.PURPLE}step_expr{ANSI.END}) {
-        {ANSI.GREEN}# body{ANSI.END}
-    }
+```xpp26
+for (start_expr; end_expr; step_expr) {
+    # body
+}
+```
 
 {ANSI.YELLOW}In a for loop:{ANSI.END}
-* {ANSI.PURPLE}start_expr{ANSI.END} is executed once before the loop begins.
-* {ANSI.PURPLE}end_expr{ANSI.END} is executed before the loop body every iteration, exiting the loop when the condition is not met.
-* {ANSI.PURPLE}step_expr{ANSI.END} is executed every time after the loop body has run.
+* start_expr is executed once before the loop begins
+* end_expr is executed before the loop body every iteration, exiting when false
+* step_expr is executed every time after the loop body has run
 
 {ANSI.YELLOW}Compiler output:{ANSI.END}
 
-    {ANSI.GREEN}; start_expr{ANSI.END}
-    {ANSI.PURPLE}:beginfor{ANSI.END}
-    {ANSI.GREEN}; end_expr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH {ANSI.END}{ANSI.END}{ANSI.CYAN}0{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}EQ{ANSI.END}{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}BRNZ {ANSI.END}{ANSI.END}{ANSI.PURPLE}:endfor{ANSI.END}
-    {ANSI.GREEN}; body
-    ; step_expr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}JUMP {ANSI.END}{ANSI.END}{ANSI.PURPLE}:beginfor{ANSI.END}
-    {ANSI.PURPLE}:endfor{ANSI.END}
+```asm
+; start_expr
+:beginfor
+; end_expr
+PUSH 0
+EQ
+BRNZ :endfor
+; body
+; step_expr
+JUMP :beginfor
+:endfor
 
-    {ANSI.GREEN}; rest of the program...{ANSI.END}
+; rest of the program...
+```
 
 {ANSI.BOLD}While Loop{ANSI.END}
 Syntax:
 
-    {ANSI.BOLD}{ANSI.RED}while {ANSI.END}({ANSI.PURPLE}condition{ANSI.END}) {
-        {ANSI.GREEN}# body{ANSI.END}
-    }
+```xpp26
+while (condition) {
+    # body
+}
+```
 
-In a {ANSI.RED}while {ANSI.END}loop, {ANSI.PURPLE}condition{ANSI.END} is executed {ANSI.BOLD}before {ANSI.END}the loop body every iteration, exiting the loop when the condition is not met.
-This makes the {ANSI.RED}while{ANSI.END} loop a {ANSI.UNDERLINE}pre-condition{ANSI.END} loop.
+In a while loop, condition is executed {{ANSI.BOLD}before{{ANSI.END} the loop body every iteration, exiting when false.
+This makes the while loop a {{ANSI.UNDERLINE}pre-condition{{ANSI.END} loop.
 
 {ANSI.YELLOW}Compiler output:{ANSI.END}
 
-    {ANSI.PURPLE}:beginwhile{ANSI.END}
-    {ANSI.GREEN}; condition{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH {ANSI.END}{ANSI.END}{ANSI.CYAN}0{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}EQ{ANSI.END}{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}BRNZ {ANSI.END}{ANSI.END}{ANSI.PURPLE}:endwhile{ANSI.END}
-    {ANSI.GREEN}; body{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}JUMP{ANSI.END}{ANSI.END} {ANSI.PURPLE}:beginwhile{ANSI.END}
-    {ANSI.PURPLE}:endwhile{ANSI.END}
+```asm
+:beginwhile
+; condition
+PUSH 0
+EQ
+BRNZ :endwhile
+; body
+JUMP :beginwhile
+:endwhile
 
-    {ANSI.GREEN}; rest of the program...{ANSI.END}
+; rest of the program...
+```
 
 {ANSI.BOLD}Repeat Loop{ANSI.END}
 Syntax:
 
-    {ANSI.BOLD}{ANSI.RED}repeat{ANSI.END} {
-        {ANSI.GREEN}# body{ANSI.END}
-    } {ANSI.BOLD}{ANSI.RED}until{ANSI.END} ({ANSI.PURPLE}condition{ANSI.END})
+```xpp26
+repeat {
+    # body
+} until (condition)
+```
 
-In a {ANSI.RED}repeat {ANSI.END}loop, {ANSI.PURPLE}condition{ANSI.END} is executed {ANSI.BOLD}after {ANSI.END}the loop body every iteration, exiting the loop when the condition is met.
-This makes the {ANSI.RED}repeat{ANSI.END} loop a {ANSI.UNDERLINE}post-condition{ANSI.END} loop, as the loop body will always execute at least once.
+In a repeat loop, condition is executed {{ANSI.BOLD}after{{ANSI.END} the loop body every iteration, exiting when true.
+This makes the repeat loop a {{ANSI.UNDERLINE}post-condition{{ANSI.END} loop, as the loop body will always execute at least once.
 
 {ANSI.YELLOW}Compiler output:{ANSI.END}
 
-    {ANSI.PURPLE}:beginrepeat{ANSI.END}
-    {ANSI.GREEN}; body{ANSI.END}
-    {ANSI.GREEN}; condition{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH {ANSI.END}{ANSI.END}{ANSI.CYAN}0{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}EQ{ANSI.END}{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}BRZ {ANSI.END}{ANSI.END}{ANSI.PURPLE}:beginrepeat{ANSI.END}
+```asm
+:beginrepeat
+; body
+; condition
+PUSH 0
+EQ
+BRZ :beginrepeat
 
-    {ANSI.GREEN}; rest of the program...{ANSI.END}
+; rest of the program...
+```
 
 ==================================================
 Xenon-131 VM
 ========
 
-{ANSI.END}* {ANSI.GREEN}Stack-based{ANSI.END} (200000 items -> {ANSI.YELLOW}781.25 KiB{ANSI.END})
-* {ANSI.GREEN}Untyped{ANSI.END}
-* {ANSI.GREEN}32-bit data{ANSI.END}
-* {ANSI.GREEN}36-bit instructions{ANSI.END} ({ANSI.YELLOW}4b{ANSI.END} opcode, {ANSI.YELLOW}32b{ANSI.END} data)
-* {ANSI.CYAN}65536 RAM addresses{ANSI.END}  {ANSI.YELLOW}(256 KiB){ANSI.END}
-* {ANSI.CYAN}65536 PROM addresses{ANSI.END} {ANSI.YELLOW}(288 KiB){ANSI.END}
--> Total capacity: {ANSI.PURPLE}1325.25 KiB{ANSI.END} = {ANSI.RED}1.294 MiB{ANSI.END}
+* {{ANSI.GREEN}Stack-based{{ANSI.END} (200000 items -> {{ANSI.YELLOW}781.25 KiB{{ANSI.END})
+* {{ANSI.GREEN}Untyped{{ANSI.END}
+* {{ANSI.GREEN}32-bit data{{ANSI.END}
+* {{ANSI.GREEN}36-bit instructions{{ANSI.END} ({{ANSI.YELLOW}4b{{ANSI.END} opcode, {{ANSI.YELLOW}32b{{ANSI.END} data)
+* {{ANSI.CYAN}65536 RAM addresses{{ANSI.END}  {{ANSI.YELLOW}(256 KiB){{ANSI.END}
+* {{ANSI.CYAN}65536 PROM addresses{{ANSI.END} {{ANSI.YELLOW}(288 KiB){{ANSI.END}
+-> Total capacity: {{ANSI.PURPLE}1325.25 KiB{{ANSI.END} = {{ANSI.RED}1.294 MiB{{ANSI.END}
 
 ==================================================
 Instruction Set
 ========
 
 {ANSI.BOLD}Basic Instructions{ANSI.END}
-* {ANSI.CYAN}PUSH x{ANSI.END}:  Pushes a 32-bit integer {ANSI.RED}x{ANSI.END} to the stack.
-* {ANSI.CYAN}POP{ANSI.END}:      Pops the last value from the stack.
 
-* {ANSI.CYAN}LOAD x{ANSI.END}:  Loads the 32-bit integer at address {ANSI.RED}x{ANSI.END} and pushes it to the stack.
-* {ANSI.CYAN}STORE x{ANSI.END}: Stores the top of the stack to address {ANSI.RED}x{ANSI.END} and pops the stack.
-* {ANSI.CYAN}LOADIND{ANSI.END}: Pops {ANSI.RED}a{ANSI.END} from the stack and loads from address {ANSI.RED}a{ANSI.END}.
-* {ANSI.CYAN}STREIND{ANSI.END}: Pops {ANSI.RED}a{ANSI.END} and {ANSI.RED}b{ANSI.END} from the stack and stores {ANSI.RED}b{ANSI.END} to address {ANSI.RED}a{ANSI.END} (assuming {ANSI.RED}a{ANSI.END} is pushed before {ANSI.RED}b{ANSI.END}).
+```
+PUSH x      - Pushes a 32-bit integer x to the stack.
+POP         - Pops the last value from the stack.
 
-* {ANSI.CYAN}I2F{ANSI.END}:      Converts the top of the stack into a float.
-* {ANSI.CYAN}F2I{ANSI.END}:      Converts the IEEE-754 representation of a float on top of the stack into an integer.
-* {ANSI.CYAN}BOOL{ANSI.END}:     Converts the top of the stack into a boolean ({ANSI.PURPLE}-1{ANSI.END} or {ANSI.PURPLE}0{ANSI.END})
+LOAD x      - Loads the 32-bit integer at address x and pushes it to the stack.
+STORE x     - Stores the top of the stack to address x and pops the stack.
+LOADIND     - Pops a from the stack and loads from address a.
+STREIND     - Pops a and b from the stack and stores b to address a.
+
+I2F         - Converts the top of the stack into a float.
+F2I         - Converts the IEEE-754 representation of a float on top of the stack into an integer.
+BOOL        - Converts the top of the stack into a boolean (-1 or 0)
+```
 
 {ANSI.BOLD}Binary Operations{ANSI.END}
-{ANSI.YELLOW}These operations pop 2 values from the stack, {ANSI.RED}a{ANSI.YELLOW} and {ANSI.RED}b{ANSI.YELLOW}, and push the result to the stack.
-This assumes {ANSI.RED}a{ANSI.YELLOW} is pushed before {ANSI.RED}b{ANSI.YELLOW}.{ANSI.END}
-* {ANSI.CYAN}ADDI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}+{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}SUBI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}-{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}MULI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}*{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}DIVI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}/{ANSI.END} {ANSI.RED}b{ANSI.END} (integer division), assuming the operands are integers.
-* {ANSI.CYAN}MODI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}%{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}POWI{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}**{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
+{ANSI.YELLOW}These operations pop 2 values from the stack, a and b, and push the result to the stack.
+This assumes a is pushed before b.{{ANSI.END}
 
-* {ANSI.CYAN}ADDF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}+{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}SUBF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}-{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}MULF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}*{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}DIVF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}/{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}MODF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}%{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}POWF{ANSI.END}: Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}**{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
+```
+Integer Arithmetic:
+ADDI  - Performs a + b, assuming the operands are integers.
+SUBI  - Performs a - b, assuming the operands are integers.
+MULI  - Performs a * b, assuming the operands are integers.
+DIVI  - Performs a / b (integer division), assuming the operands are integers.
+MODI  - Performs a % b, assuming the operands are integers.
+POWI  - Performs a ** b, assuming the operands are integers.
 
-* {ANSI.CYAN}AND{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}&{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}OR{ANSI.END}:   Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}|{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}XOR{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}^{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
+Float Arithmetic:
+ADDF  - Performs a + b, assuming the operands are floats.
+SUBF  - Performs a - b, assuming the operands are floats.
+MULF  - Performs a * b, assuming the operands are floats.
+DIVF  - Performs a / b, assuming the operands are floats.
+MODF  - Performs a % b, assuming the operands are floats.
+POWF  - Performs a ** b, assuming the operands are floats.
 
-* {ANSI.CYAN}IEQ{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}=={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}INE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}!={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}ILT{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}<{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}ILE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}<={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}IGT{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}>{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
-* {ANSI.CYAN}IGE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}>={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are integers.
+Bitwise Operations:
+AND   - Performs a & b, assuming the operands are integers.
+OR    - Performs a | b, assuming the operands are integers.
+XOR   - Performs a ^ b, assuming the operands are integers.
 
-* {ANSI.CYAN}FEQ{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}=={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}FNE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}!={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}FLT{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}<{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}FLE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}<={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}FGT{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}>{ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
-* {ANSI.CYAN}FGE{ANSI.END}:  Performs {ANSI.RED}a{ANSI.END} {ANSI.CYAN}>={ANSI.END} {ANSI.RED}b{ANSI.END}, assuming the operands are floats.
+Integer Comparisons:
+IEQ   - Performs a == b, assuming the operands are integers.
+INE   - Performs a != b, assuming the operands are integers.
+ILT   - Performs a < b, assuming the operands are integers.
+ILE   - Performs a <= b, assuming the operands are integers.
+IGT   - Performs a > b, assuming the operands are integers.
+IGE   - Performs a >= b, assuming the operands are integers.
+
+Float Comparisons:
+FEQ   - Performs a == b, assuming the operands are floats.
+FNE   - Performs a != b, assuming the operands are floats.
+FLT   - Performs a < b, assuming the operands are floats.
+FLE   - Performs a <= b, assuming the operands are floats.
+FGT   - Performs a > b, assuming the operands are floats.
+FGE   - Performs a >= b, assuming the operands are floats.
+```
 
 {ANSI.BOLD}Unary Operations:{ANSI.END}
-{ANSI.YELLOW}These operations pop a value {ANSI.RED}a{ANSI.YELLOW} from the stack and push the result to the stack.{ANSI.END}
-* {ANSI.CYAN}NEGI{ANSI.END}: Performs {ANSI.CYAN}-{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is an integer.
-* {ANSI.CYAN}NEGF{ANSI.END}: Performs {ANSI.CYAN}-{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is a float.
-* {ANSI.CYAN}NOT{ANSI.END}:  Performs {ANSI.CYAN}~{ANSI.RED}a{ANSI.END}, assuming {ANSI.RED}a{ANSI.END} is an integer.
+{{ANSI.YELLOW}These operations pop a value a from the stack and push the result to the stack.{{ANSI.END}
+
+```
+NEGI  - Performs -a, assuming a is an integer.
+NEGF  - Performs -a, assuming a is a float.
+NOT   - Performs ~a, assuming a is an integer.
+```
 
 {ANSI.BOLD}Jumping and Branching:{ANSI.END}
-* {ANSI.CYAN}JUMP x{ANSI.END}: Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END}.
-* {ANSI.CYAN}BRZ x{ANSI.END}:  Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is {ANSI.GREEN}0{ANSI.END}.
-* {ANSI.CYAN}BRNZ x{ANSI.END}: Loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is not {ANSI.GREEN}0{ANSI.END}.
 
-* {ANSI.CYAN}CALL x{ANSI.END}: Pushes {ANSI.PURPLE}IP + 1{ANSI.END} to the call stack and loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END}.
-* {ANSI.CYAN}CALZ x{ANSI.END}: Pushes {ANSI.PURPLE}IP + 1{ANSI.END} to the call stack and loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is {ANSI.GREEN}0{ANSI.END}.
-* {ANSI.CYAN}CALN x{ANSI.END}: Pushes {ANSI.PURPLE}IP + 1{ANSI.END} to the call stack and loads {ANSI.RED}x{ANSI.END} to {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is not {ANSI.GREEN}0{ANSI.END}.
+```
+JUMP x   - Loads x to IP (instruction pointer).
+BRZ x    - Loads x to IP if the value on top of the stack is 0.
+BRNZ x   - Loads x to IP if the value on top of the stack is not 0.
 
-* {ANSI.CYAN}RET{ANSI.END}:  Pops the call stack into {ANSI.PURPLE}IP{ANSI.END}.
-* {ANSI.CYAN}RETZ{ANSI.END}: Pops the call stack into {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is {ANSI.GREEN}0{ANSI.END}.
-* {ANSI.CYAN}RETN{ANSI.END}: Pops the call stack into {ANSI.PURPLE}IP{ANSI.END} if the value on top of the stack is not {ANSI.GREEN}0{ANSI.END}.
+CALL x   - Pushes IP + 1 to the call stack and loads x to IP.
+CALZ x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is 0.
+CALN x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is not 0.
+
+RET      - Pops the call stack into IP.
+RETZ     - Pops the call stack into IP if the top of stack is 0.
+RETN     - Pops the call stack into IP if the top of stack is not 0.
+```
 
 {ANSI.BOLD}System Instructions:{ANSI.END}
-* {ANSI.CYAN}HALT{ANSI.END}:  Shuts down the entire VM.
-* {ANSI.CYAN}WAIT{ANSI.END}:  Pauses execution until interrupts are raised.
-* {ANSI.CYAN}INT x{ANSI.END}: Raises an interrupt to the VM.
-* {ANSI.CYAN}IRT{ANSI.END}:   Resolves the current interrupt.
-* {ANSI.CYAN}SYS x{ANSI.END}: Raises a syscall to be handled by the kernel.
+
+```
+HALT     - Shuts down the entire VM.
+WAIT     - Pauses execution until interrupts are raised.
+INT x    - Raises an interrupt to the VM.
+IRT      - Resolves the current interrupt.
+SYS x    - Raises a syscall to be handled by the kernel.
+```
 
 ==================================================
 Data Structure Representations
 ========
 
-{ANSI.BOLD}Integer{ANSI.END}
+{ANSI.BOLD}Integer{{ANSI.END}
 * Each integer is stored as a 32-bit signed value and occupies 1 memory address.
-* Range: {ANSI.PURPLE}-2147483648{ANSI.END} to {ANSI.PURPLE}2147483647{ANSI.END} inclusive.
+* Range: -2147483648 to 2147483647 inclusive.
 
-{ANSI.BOLD}Float{ANSI.END}
+{ANSI.BOLD}Float{{ANSI.END}
 * Each float is stored as a 32-bit value (single-precision) and occupies 1 address in memory.
 * It adheres to IEEE-754 specifications:
 
-{ANSI.YELLOW}x{ANSI.END}{ANSI.GREEN}xxxxxxxx{ANSI.END}{ANSI.PURPLE}xxxxxxxxxxxxxxxxxxxxxxx{ANSI.END}
-{ANSI.YELLOW}_{ANSI.END}{ANSI.GREEN}________{ANSI.END}{ANSI.PURPLE}_______________________{ANSI.END}
+```
+x xxxxxxxx xxxxxxxxxxxxxxxxxxxxxxx
+_ ________ _______________________
 
-* {ANSI.YELLOW}1 sign bit -> S{ANSI.END}
-* {ANSI.GREEN}8 exponent bits -> E + 127{ANSI.END}
-* {ANSI.PURPLE}23 mantissa bits -> 1 + M (24 bits of precision){ANSI.END}
-Thus, a float's value is {ANSI.RED}(-1)^S * 2^(E + 127) * (1 + M){ANSI.END}.
+1 sign bit        -> S
+8 exponent bits   -> E + 127
+23 mantissa bits  -> 1 + M (24 bits of precision)
 
-* Range: {ANSI.PURPLE}-3.4e38{ANSI.END} to {ANSI.PURPLE}3.4e38{ANSI.END} inclusive.
-* Maximum safe integer: {ANSI.PURPLE}2^24 (16777216){ANSI.END}.
+Value = (-1)^S * 2^(E + 127) * (1 + M)
+```
 
-{ANSI.BOLD}Boolean{ANSI.END}
+* Range: -3.4e38 to 3.4e38 inclusive.
+* Maximum safe integer: 2^24 (16777216).
+
+{ANSI.BOLD}Boolean{{ANSI.END}
 * Booleans are represented using 2 values:
-  - {ANSI.PURPLE}false{ANSI.END} = {ANSI.CYAN}0x00000000{ANSI.END} ({ANSI.PURPLE}0{ANSI.END})
-  - {ANSI.PURPLE}true{ANSI.END}  = {ANSI.CYAN}0xFFFFFFFF{ANSI.END} ({ANSI.PURPLE}-1{ANSI.END})
-This allows logical and bitwise {ANSI.RED}AND{ANSI.END}, {ANSI.RED}OR{ANSI.END}, {ANSI.RED}NOT{ANSI.END}, and {ANSI.RED}XOR{ANSI.END} to share the same opcodes.
+  - false = 0x00000000 (0)
+  - true  = 0xFFFFFFFF (-1)
+* This allows logical and bitwise AND, OR, NOT, and XOR to share the same opcodes.
 
-{ANSI.BOLD}Pointer{ANSI.END} - not implemented
-
-{ANSI.BOLD}Array{ANSI.END} - not implemented
-
-{ANSI.BOLD}String{ANSI.END} - not implemented
-
-{ANSI.BOLD}Character{ANSI.END} - not implemented
-
-{ANSI.BOLD}Subroutine{ANSI.END} - not implemented
-
-{ANSI.BOLD}Objects{ANSI.END} - not implemented
+{ANSI.BOLD}Pointer{{ANSI.END} - not implemented
+{ANSI.BOLD}Array{{ANSI.END} - not implemented
+{ANSI.BOLD}String{{ANSI.END} - not implemented
+{ANSI.BOLD}Character{{ANSI.END} - not implemented
+{ANSI.BOLD}Subroutine{{ANSI.END} - not implemented
+{ANSI.BOLD}Objects{{ANSI.END} - not implemented
 
 ==================================================
 Syscalls
 ========
 
-{ANSI.BOLD}I/O Syscalls{ANSI.END}
-   {ANSI.CYAN}1{ANSI.END} {ANSI.GREEN}OUTPUT_STR{ANSI.END}: Outputs the string at the string pointer on top of the stack.
+{ANSI.BOLD}I/O Syscalls{{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}1{ANSI.END}
+{{ANSI.CYAN}1 - OUTPUT_STR{{ANSI.END}
+Outputs the string at the string pointer on top of the stack.
 
-   {ANSI.CYAN}2{ANSI.END} {ANSI.GREEN}READ_STR{ANSI.END}  : Pauses execution in the current process and waits for user input.
+```xpp26
+out << str
+```
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}2{ANSI.END}
+{{ANSI.CYAN}2 - READ_STR{{ANSI.END}
+Pauses execution in the current process and waits for user input.
 
-   {ANSI.CYAN}3{ANSI.END} {ANSI.GREEN}STRTOINT{ANSI.END}  : Converts the string at the pointer on top of the stack to an integer.
+```xpp26
+in >> str
+```
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}3{ANSI.END}
+{{ANSI.CYAN}3 - STRTOINT{{ANSI.END}
+Converts the string at the pointer on top of the stack to an integer.
 
-   {ANSI.CYAN}4{ANSI.END} {ANSI.GREEN}STRTOFLOAT{ANSI.END}: Converts the string at the pointer on top of the stack to a float.
+```xpp26
+var num: int = (int) str
+```
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}4{ANSI.END}
+{{ANSI.CYAN}4 - STRTOFLOAT{{ANSI.END}
+Converts the string at the pointer on top of the stack to a float.
 
-   {ANSI.CYAN}5{ANSI.END} {ANSI.GREEN}INTTOSTR{ANSI.END}  : Converts the integer at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
+```xpp26
+var num: float = (float) str
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}5{ANSI.END}
+{{ANSI.CYAN}5 - INTTOSTR{{ANSI.END}
+Converts the integer at the top of the stack to a string at address 0x0F00.
 
-   {ANSI.CYAN}6{ANSI.END} {ANSI.GREEN}FLOATTOSTR{ANSI.END}: Converts the float at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
+```asm
+PUSH 42
+SYS 5
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}float{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}6{ANSI.END}
+{{ANSI.CYAN}6 - FLOATTOSTR{{ANSI.END}
+Converts the float at the top of the stack to a string at address 0x0F00.
 
-   {ANSI.CYAN}7{ANSI.END} {ANSI.GREEN}BOOLTOSTR{ANSI.END} : Converts the boolean at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
+```asm
+PUSH 3.14
+SYS 6
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}bool{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}7{ANSI.END}
+{{ANSI.CYAN}7 - BOOLTOSTR{{ANSI.END}
+Converts the boolean at the top of the stack to a string at address 0x0F00.
 
-   {ANSI.CYAN}8{ANSI.END} {ANSI.GREEN}INTTOHEX{ANSI.END}  : Converts the integer at the top of the stack to a string at address {ANSI.CYAN}0x0F00{ANSI.END}.
+```asm
+PUSH -1  ; true
+SYS 7
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}8{ANSI.END}
+{{ANSI.CYAN}8 - INTTOHEX{{ANSI.END}
+Converts the integer at the top of the stack to a hexadecimal string at address 0x0F00.
 
-   {ANSI.CYAN}9{ANSI.END} {ANSI.GREEN}PUT_CHAR{ANSI.END}  : Outputs the character on top of the stack.
+```asm
+PUSH 255
+SYS 8  ; converts to "FF"
+```
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}char{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}9{ANSI.END}
+{{ANSI.CYAN}9 - PUT_CHAR{{ANSI.END}
+Outputs the character on top of the stack.
 
+```asm
+PUSH 65  ; ASCII 'A'
+SYS 9
+```
 
-{ANSI.BOLD}String Syscalls{ANSI.END}
-  {ANSI.CYAN}10{ANSI.END} {ANSI.GREEN}STR_CONCAT{ANSI.END}: Concatenates {ANSI.CYAN}str1{ANSI.END} and {ANSI.CYAN}str2{ANSI.END}, storing the result in {ANSI.CYAN}str3{ANSI.END}.
+{ANSI.BOLD}String Syscalls{{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str1{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str3{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}10{ANSI.END}
+{{ANSI.CYAN}10 - STR_CONCAT{{ANSI.END}
+Concatenates str1 and str2, storing the result in str3.
 
-  {ANSI.CYAN}11{ANSI.END} {ANSI.GREEN}STR_COMPARE{ANSI.END}: Compares {ANSI.CYAN}str1{ANSI.END} and {ANSI.CYAN}str2{ANSI.END}, pushing the boolean result to the stack.
+```asm
+LOAD &str1
+LOAD &str2
+LOAD &str3
+SYS 10
+```
 
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str1{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}11{ANSI.END}
+{{ANSI.CYAN}11 - STR_COMPARE{{ANSI.END}
+Compares str1 and str2, pushing the boolean result to the stack.
 
-  {ANSI.CYAN}12{ANSI.END} {ANSI.GREEN}STR_COPY{ANSI.END}: Copies {ANSI.CYAN}str1{ANSI.END} to {ANSI.CYAN}str2{ANSI.END}.
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str1{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}LOAD{ANSI.END} {ANSI.YELLOW}&str2{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}12{ANSI.END}
+```asm
+LOAD &str1
+LOAD &str2
+SYS 11  ; pushes -1 (true) if equal, 0 (false) otherwise
+```
 
-{ANSI.BOLD}System Syscalls{ANSI.END}
-  {ANSI.CYAN}20{ANSI.END} {ANSI.GREEN}SYS_GETTIME{ANSI.END}: Pushes the current execution time (in ms).
+{{ANSI.CYAN}12 - STR_COPY{{ANSI.END}
+Copies str1 to str2.
 
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}20{ANSI.END} {ANSI.GREEN}; -> int{ANSI.END}
+```asm
+LOAD &str1
+LOAD &str2
+SYS 12
+```
 
-  {ANSI.CYAN}30{ANSI.END} {ANSI.GREEN}SYS_EXIT{ANSI.END}: Pops the exit code from the stack and commands the VM to terminate the current process based on it.
+{ANSI.BOLD}System Syscalls{{ANSI.END}
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}30{ANSI.END}
+{{ANSI.CYAN}20 - SYS_GETTIME{{ANSI.END}
+Pushes the current execution time (in milliseconds) to the stack.
 
-{ANSI.BOLD}Graphics Syscalls{ANSI.END}
+```asm
+SYS 20  ; -> int (time in ms)
+```
 
-{ANSI.BOLD}Other Syscalls{ANSI.END}
-  {ANSI.CYAN}60{ANSI.END} {ANSI.GREEN}REQUEST{ANSI.END}: Pops the request backend id and destination from the stack and sends a request to that backend using cloud variables. The result of that request would be stored at address {ANSI.CYAN}addr{ANSI.END}.
+{{ANSI.CYAN}30 - SYS_EXIT{{ANSI.END}
+Pops the exit code from the stack and commands the VM to terminate the current process.
 
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.PURPLE}int{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}PUSH{ANSI.END} {ANSI.YELLOW}addr{ANSI.END}
-    {ANSI.BOLD}{ANSI.RED}SYS{ANSI.END} {ANSI.CYAN}60{ANSI.END}
+```asm
+PUSH 0
+SYS 30  ; exit with code 0
+```
+
+{ANSI.BOLD}Graphics Syscalls{{ANSI.END}
+(Reserved for future use)
+
+{ANSI.BOLD}Other Syscalls{{ANSI.END}
+
+{{ANSI.CYAN}60 - REQUEST{{ANSI.END}
+Sends a request to a cloud backend using cloud variables and waits for the result.
+
+```asm
+PUSH backend_id
+PUSH destination_address
+SYS 60  ; sends request and stores result
+```
 
 ==================================================
 Planned Features
 ========
 
-{ANSI.UNDERLINE}0.2.0{ANSI.END}
+{ANSI.UNDERLINE}0.2.0{{ANSI.END}
 * Pointers
 * Strings
 * Arrays
 * Functions
 
-{ANSI.UNDERLINE}0.3.0{ANSI.END}
+{ANSI.UNDERLINE}0.3.0{{ANSI.END}
 * Structs
 * Dynamic Memory
 
-{ANSI.UNDERLINE}0.5.0{ANSI.END}
+{ANSI.UNDERLINE}0.5.0{{ANSI.END}
 * Modules
 * Standard Library
 
-{ANSI.UNDERLINE}1.0.0{ANSI.END}
+{ANSI.UNDERLINE}1.0.0{{ANSI.END}
 * Full XenonOS Support
 * Graphics API
