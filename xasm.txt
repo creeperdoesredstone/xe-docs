@@ -1,0 +1,447 @@
+==================================================
+Xenon-131 VM
+========
+
+* {ANSI.GREEN}Stack-based{ANSI.END} (200000 items -> {ANSI.YELLOW}781.25 KiB{ANSI.END})
+* {ANSI.GREEN}Untyped{ANSI.END}
+* {ANSI.GREEN}32-bit data{ANSI.END}
+* {ANSI.GREEN}36-bit instructions{ANSI.END} ({ANSI.YELLOW}4b{ANSI.END} opcode, {ANSI.YELLOW}32b{ANSI.END} data)
+* {ANSI.CYAN}65536 RAM addresses{ANSI.END}  {ANSI.YELLOW}(256 KiB){ANSI.END}
+* {ANSI.CYAN}65536 PROM addresses{ANSI.END} {ANSI.YELLOW}(288 KiB){ANSI.END}
+-> Total capacity: {ANSI.PURPLE}1325.25 KiB{ANSI.END} = {ANSI.RED}1.294 MiB{ANSI.END}
+
+==================================================
+Instruction Set
+========
+
+{ANSI.BOLD}Stack Instructions{ANSI.END}
+
+```
+PUSH x      - Pushes a 32-bit integer x to the stack.
+POP         - Pops the last value from the stack.
+
+LOAD x      - Loads the 32-bit integer at address x and pushes it to the stack.
+STORE x     - Stores the top of the stack to address x and pops the stack.
+LOADIND     - Pops a from the stack and loads from address a.
+STREIND     - Pops a and b from the stack and stores b to address a.
+
+DUP         - Duplicates the top of the stack.                     [ ... a -> a a]
+SWAP        - Swaps the 2 topmost elements of the stack.           [ ... a b -> b a]
+OVER        - Copies the second item on the stack to the very top. [ ... a b -> a b a ]
+ROT         - Rotates the top 3 elements on the stack.             [ ... a b c -> c a b]
+```
+
+{ANSI.BOLD}Frame Management Instructions{ANSI.END}
+
+```
+PUSHFP     - Pushes the current value of the `FP` register onto the top of the Data Stack.
+POPFP      - Pops the top value of the Data Stack back into the `FP` register.
+SETFP      - Sets `FP` equal to the current Stack Pointer `(FP = SP)`.
+
+LOADSP x   - Copies the value at `DS[FP + x]` and pushes it to the top of the stack.
+STORESP x  - Pops the top value of the stack and writes it to `DS[FP + x]`.
+```
+
+{ANSI.BOLD}Type Conversion Instructions{ANSI.END}
+
+```
+I2F         - Converts the top of the stack into a float.
+F2I         - Converts the IEEE-754 representation of a float on top of the stack into an integer.
+BOOL        - Converts the top of the stack into a boolean (-1 or 0)
+```
+
+{ANSI.BOLD}Binary Operations{ANSI.END}
+{ANSI.YELLOW}These operations pop 2 values from the stack, a and b, and push the result to the stack.
+This assumes a is pushed before b.{ANSI.END}
+
+```
+Integer Arithmetic:
+ADDI  - Performs a + b, assuming the operands are integers.  [  a b -> a + b  ]
+SUBI  - Performs a - b, assuming the operands are integers.  [  a b -> a - b  ]
+MULI  - Performs a * b, assuming the operands are integers.  [  a b -> a * b  ]
+DIVI  - Performs a / b, assuming the operands are integers.  [  a b -> a / b  ]
+MODI  - Performs a % b, assuming the operands are integers.  [  a b -> a % b  ]
+POWI  - Performs a ** b, assuming the operands are integers. [  a b -> a ** b ]
+
+Float Arithmetic:
+ADDF  - Performs a + b, assuming the operands are floats.    [  a b -> a + b  ]
+SUBF  - Performs a - b, assuming the operands are floats.    [  a b -> a - b  ]
+MULF  - Performs a * b, assuming the operands are floats.    [  a b -> a * b  ]
+DIVF  - Performs a / b, assuming the operands are floats.    [  a b -> a / b  ]
+MODF  - Performs a % b, assuming the operands are floats.    [  a b -> a % b  ]
+POWF  - Performs a ** b, assuming the operands are floats.   [  a b -> a ** b ]
+
+Bitwise Operations:
+AND   - Performs a & b, assuming the operands are integers.  [  a b -> a & b  ]
+OR    - Performs a | b, assuming the operands are integers.  [  a b -> a | b  ]
+XOR   - Performs a ^ b, assuming the operands are integers.  [  a b -> a ^ b  ]
+
+Integer Comparisons:
+IEQ   - Performs a == b, assuming the operands are integers. [  a b -> a == b ]
+INE   - Performs a != b, assuming the operands are integers. [  a b -> a != b ]
+ILT   - Performs a < b, assuming the operands are integers.  [  a b -> a < b  ]
+ILE   - Performs a <= b, assuming the operands are integers. [  a b -> a <= b ]
+IGT   - Performs a > b, assuming the operands are integers.  [  a b -> a > b  ]
+IGE   - Performs a >= b, assuming the operands are integers. [  a b -> a >= b ]
+
+Float Comparisons:
+FEQ   - Performs a == b, assuming the operands are floats.   [  a b -> a == b ]
+FNE   - Performs a != b, assuming the operands are floats.   [  a b -> a != b ]
+FLT   - Performs a < b, assuming the operands are floats.    [  a b -> a < b  ]
+FLE   - Performs a <= b, assuming the operands are floats.   [  a b -> a <= b ]
+FGT   - Performs a > b, assuming the operands are floats.    [  a b -> a > b  ]
+FGE   - Performs a >= b, assuming the operands are floats.   [  a b -> a >= b ]
+```
+
+{ANSI.BOLD}Unary Operations:{ANSI.END}
+{ANSI.YELLOW}These operations pop a value a from the stack and push the result to the stack.{ANSI.END}
+
+```
+INCI  - Performs a + 1, assuming a is an integer. [  a -> a + 1 ]
+DECI  - Performs a - 1, assuming a is an integer. [  a -> a - 1 ]
+INCF  - Performs a + 1, assuming a is a float.    [  a -> a + 1 ]
+DECF  - Performs a - 1, assuming a is a float.    [  a -> a - 1 ]
+
+NEGI  - Performs -a, assuming a is an integer.    [  a -> -a    ]
+NEGF  - Performs -a, assuming a is a float.       [  a -> -a    ]
+NOT   - Performs ~a, assuming a is an integer.    [  a -> ~a    ]
+```
+
+{ANSI.BOLD}Jumping and Branching:{ANSI.END}
+
+```
+JUMP x   - Loads x to IP (instruction pointer).
+BRZ x    - Loads x to IP if the value on top of the stack is 0.
+BRNZ x   - Loads x to IP if the value on top of the stack is not 0.
+
+CALL x   - Pushes IP + 1 to the call stack and loads x to IP.
+CALZ x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is 0.
+CALN x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is not 0.
+
+RET x    - Pops the call stack into IP and pops `x` arguments from the stack.
+RETZ x   - Pops the call stack into IP if the top of stack is 0 and pops `x` arguments from the stack.
+RETN x   - Pops the call stack into IP if the top of stack is not 0 and pops `x` arguments from the stack.
+```
+
+{ANSI.BOLD}System Instructions:{ANSI.END}
+
+```
+HALT     - Shuts down the entire VM.
+WAIT     - Pauses execution until interrupts are raised.
+
+INT x    - Raises an interrupt to the VM.
+IRT      - Resolves the current interrupt.
+IRTZ     - Resolves the current interrupt if the value on top of stack is 0.
+IRTN     - Resolves the current interrupt if the value on top of stack is not 0.
+
+LOOKUP   - Pops &src, &dest, and size from the stack, and copys `size` bytes from &src in PROM to &dest in RAM.
+
+SYS x    - Raises a syscall to be handled by the kernel.
+```
+
+==================================================
+Data Structure Representations
+========
+
+{ANSI.BOLD}Integer{ANSI.END}
+* Each integer is stored as a 32-bit signed value and occupies 1 memory address.
+* Range: `-2147483648` to `2147483647` inclusive.
+
+{ANSI.BOLD}Float{ANSI.END}
+* Each float is stored as a 32-bit value (single-precision) and occupies 1 address in memory.
+* It adheres to IEEE-754 specifications:
+
+```
+x xxxxxxxx xxxxxxxxxxxxxxxxxxxxxxx
+_ ________ _______________________
+
+1 sign bit        -> `S`
+8 exponent bits   -> `E + 127`
+23 mantissa bits  -> `1 + M` (24 bits of precision)
+
+Value = (-1)^S * 2^(E + 127) * (1 + M)
+```
+
+* Range: `-3.4e38` to `3.4e38` inclusive.
+* Maximum safe integer: `2^24 (16777216)`.
+
+{ANSI.BOLD}Boolean{ANSI.END}
+* Booleans are represented using 2 values:
+  - {ANSI.PURPLE}false{ANSI.END} = `0x00000000 (0)`
+  - {ANSI.PURPLE}true{ANSI.END}  = `0xFFFFFFFF (-1)`
+* This allows logical and bitwise AND, OR, NOT, and XOR to share the same opcodes.
+
+{ANSI.BOLD}Pointer{ANSI.END} - not implemented
+{ANSI.BOLD}Array{ANSI.END} - not implemented
+{ANSI.BOLD}String{ANSI.END} - not implemented
+{ANSI.BOLD}Character{ANSI.END} - not implemented
+{ANSI.BOLD}Subroutine{ANSI.END} - not implemented
+{ANSI.BOLD}Objects{ANSI.END} - not implemented
+
+==================================================
+Syscalls
+========
+
+{ANSI.BOLD}I/O Syscalls{ANSI.END}
+
+{ANSI.CYAN}1 - OUTPUT_STR{ANSI.END}
+Outputs the string at the string pointer on top of the stack.
+
+```asm
+PUSH &str
+LOADIND
+SYS 1
+```
+
+{ANSI.CYAN}2 - READ_STR{ANSI.END}
+Pauses execution in the current process and waits for user input.
+
+```asm
+PUSH &str
+SYS 2
+```
+
+{ANSI.CYAN}3 - STRTOINT{ANSI.END}
+Converts the string at the pointer on top of the stack to an integer.
+
+```asm
+PUSH &str
+SYS 3
+```
+
+{ANSI.CYAN}4 - STRTOFLOAT{ANSI.END}
+Converts the string at the pointer on top of the stack to a float.
+
+```asm
+PUSH &str
+SYS 4
+```
+
+{ANSI.CYAN}5 - INTTOSTR{ANSI.END}
+Converts the integer at the top of the stack to a string at address &str.
+
+```asm
+PUSH &str
+PUSH 42
+SYS 5
+```
+
+{ANSI.CYAN}6 - FLOATTOSTR{ANSI.END}
+Converts the float at the top of the stack to a string at address &str.
+
+```asm
+PUSH &str
+PUSH 0x4048F5C3  ; 0x4048F5C3 -> 3.14
+SYS 6
+```
+
+{ANSI.CYAN}7 - BOOLTOSTR{ANSI.END}
+Converts the boolean at the top of the stack to a string at address &str.
+
+```asm
+PUSH &str
+PUSH 0xFFFFFFFF  ; true
+SYS 7
+```
+
+{ANSI.CYAN}8 - INTTOHEX{ANSI.END}
+Converts the integer at the top of the stack to a hexadecimal string at address &str.
+
+```asm
+PUSH &str
+PUSH 255
+SYS 8  ; converts to "0x00FF"
+```
+
+{ANSI.CYAN}9 - PUT_CHAR{ANSI.END}
+Outputs the character on top of the stack.
+
+```asm
+PUSH 65  ; ASCII 'A'
+SYS 9
+```
+
+{ANSI.BOLD}String Syscalls{ANSI.END}
+
+{ANSI.CYAN}10 - STR_CONCAT{ANSI.END}
+Concatenates str1 and str2, storing the result in str3.
+
+```asm
+PUSH &str1
+PUSH &str2
+PUSH &str3
+SYS 10
+```
+
+{ANSI.CYAN}11 - STR_COMPARE{ANSI.END}
+Compares str1 and str2, pushing the boolean result to the stack.
+
+```asm
+PUSH &str1
+PUSH &str2
+SYS 11  ; pushes -1 (true) if equal, 0 (false) otherwise
+```
+
+{ANSI.CYAN}12 - STR_COPY{ANSI.END}
+Copies str1 to str2.
+
+```asm
+PUSH &str1
+PUSH &str2
+SYS 12
+```
+
+{ANSI.BOLD}System Syscalls{ANSI.END}
+
+{ANSI.CYAN}20 - SYS_GETTIME{ANSI.END}
+Pushes the current execution time (in milliseconds) to the stack.
+
+```asm
+SYS 20  ; -> int (time in ms)
+```
+
+{ANSI.CYAN}21 - SYS_MALLOC{ANSI.END}
+Allocates a block of memory with size {ANSI.BLUE}size{ANSI.END} in the heap and returns the address of the first element of that block.
+Raises a {ANSI.RED}HeapOverflow{ANSI.END} interrupt if no more memory is free in the heap.
+
+```asm
+PUSH size  ; size of memory block to allocate
+SYS 21
+```
+
+{ANSI.CYAN}30 - SYS_EXIT{ANSI.END}
+Pops the exit code from the stack and commands the VM to terminate the current process.
+
+```asm
+PUSH 0
+SYS 30  ; exit with code 0
+```
+
+{ANSI.BOLD}Graphics Syscalls{ANSI.END}
+(Reserved for future use)
+
+{ANSI.BOLD}Other Syscalls{ANSI.END}
+
+{ANSI.CYAN}60 - REQUEST{ANSI.END}
+Sends a request to a cloud backend using cloud variables and waits for the result.
+
+```asm
+PUSH backend_id
+PUSH destination_address
+SYS 60  ; sends request and stores result
+```
+
+==================================================
+I/O Assembly Implementation
+========
+
+{ANSI.BOLD}Output String{ANSI.END}
+
+```xpp26
+out << str
+```
+
+```asm
+LOAD &str  ; &str.descriptionVec[0]
+LOADIND    ; &str[0]
+SYS 1      ; output syscall
+```
+
+{ANSI.BOLD}Output Character Array{ANSI.END}
+
+```xpp26
+out << char_array
+```
+
+```asm
+LOAD &char_array[0]
+SYS 1  ; output syscall
+```
+
+{ANSI.BOLD}Output Character{ANSI.END}
+
+```xpp26
+out << 'A'
+```
+
+```asm
+PUSH 65  ; 'A'
+SYS 9    ; put_char syscall
+```
+
+{ANSI.BOLD}Output Integer{ANSI.END}
+
+```xpp26
+out << 42
+```
+
+```asm
+PUSH &buffer
+PUSH 42
+SYS 5  ; inttostr syscall
+
+LOAD &buffer  ; buffer.descriptionVec[0]
+LOADIND
+SYS 1         ; output syscall
+```
+
+{ANSI.BOLD}Output Float{ANSI.END}
+
+```xpp26
+out << 3.14
+```
+
+```asm
+PUSH &buffer
+PUSH 0x4048F5C3  ; 0x4048F5C3 -> 3.14
+SYS 6            ; floattostr syscall
+
+LOAD &buffer     ; buffer.descriptionVec[0]
+LOADIND
+SYS 1            ; output syscall
+```
+
+{ANSI.BOLD}Output Boolean{ANSI.END}
+
+```xpp26
+out << true
+```
+
+```asm
+PUSH &buffer
+PUSH 0xFFFFFFFF  ; true
+SYS 7            ; booltostr syscall
+
+LOAD &buffer     ; buffer[0]
+SYS 1            ; output syscall
+```
+
+{ANSI.BOLD}Output Pointer{ANSI.END}
+
+```xpp26
+out << ptr
+```
+
+```asm
+PUSH &buffer
+LOAD &ptr
+SYS 8         ; inttohex syscall
+
+LOAD &buffer  ; buffer[0]
+SYS 1         ; output syscall
+```
+
+The semantic analyzer will handle these cases automatically.
+
+---
+
+{ANSI.BOLD}Input String{ANSI.END}
+
+```xpp26
+in >> message
+```
+
+```asm
+LOAD &str
+SYS 2  ; input syscall
+```
