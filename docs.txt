@@ -8,7 +8,7 @@ It will be used for the development of {ANSI.CYAN}]8;;https://scratch.mit.edu/u
 ---
 
 {ANSI.BOLD}{ANSI.YELLOW}Compilation Pipeline:{ANSI.END}
-Source Code -> Lexer -> Tokens -> Parser -> AST -> Semantic Analyzer -> Assembly Generator -> Assembly -> Xenon-131 VM.
+Source Code -> Lexer -> Tokens -> Parser -> AST -> Semantic Analyzer -> Assembly Generator -> XAssembly -> Xenon-131 VM.
 
 ==================================================
 Getting Started
@@ -32,14 +32,14 @@ The CLI will be used to run X++ and XAssembly programs.
 
 {ANSI.BOLD}{ANSI.YELLOW}Hello World{ANSI.END}
 
-Let's create a new {ANSI.BOLD}.xpp{ANSI.END} file with the name {ANSI.RED}my_first_program.xpp{ANSI.END}.
+Let's create a new `.xpp` file with the name `{ANSI.RED}my_first_program.xpp`{ANSI.END}.
 Enter this code into the file:
 
 ```xpp26
 out << "Hello, World!\n"
 ```
 
-Don't worry if you don't understand the code above - we will discuss it in detail in later chapters.
+Don't worry if you don't understand the code above; we will discuss it in detail in later chapters.
 
 Congratulations! You have now written and executed your first X++ program.
 
@@ -85,7 +85,7 @@ Data Types & Literals
 Syntax:
 
 ```xpp26
-(type name)(expr)
+(type)(expr)
 ```
 
 Examples:
@@ -104,7 +104,7 @@ Operators & Precedence
 
 {ANSI.BOLD}Precedence (Highest to Lowest){ANSI.END}
 
-1. {ANSI.CYAN}Unary{ANSI.END}: {ANSI.RED}+{ANSI.END}a, {ANSI.RED}-{ANSI.END}a, {ANSI.RED}!{ANSI.END}a, {ANSI.RED}~{ANSI.END}a
+1. {ANSI.CYAN}Unary{ANSI.END}: {ANSI.RED}+{ANSI.END}a, {ANSI.RED}-{ANSI.END}a, {ANSI.RED}!{ANSI.END}a, {ANSI.RED}~{ANSI.END}a, {ANSI.RED}*{ANSI.END}a, {ANSI.RED}&{ANSI.END}a
 2. {ANSI.CYAN}Exponentiation{ANSI.END}: {ANSI.RED}**{ANSI.END}
 3. {ANSI.CYAN}Multiplicative{ANSI.END}: {ANSI.RED}*{ANSI.END}, {ANSI.RED}/{ANSI.END}, {ANSI.RED}%{ANSI.END} {ANSI.UNDERLINE}(int/int performs integer division){ANSI.END}
 4. {ANSI.CYAN}Additive{ANSI.END}: {ANSI.RED}+{ANSI.END}, {ANSI.RED}-{ANSI.END}
@@ -164,7 +164,7 @@ LOAD 0x1000  ; x
 ```
 
 ==================================================
-Pointers
+Pointers [ NOT IMPLEMENTED ]
 ========
 
 A pointer is a special variable that holds the address of a value.
@@ -237,7 +237,7 @@ out << x << '\n'     # 19
 ```
 
 ==================================================
-Arrays
+Arrays [ NOT IMPLEMENTED ]
 ========
 
 Arrays are pointers to the first element of a contiguous block of memory.
@@ -321,7 +321,7 @@ LOADIND
 ```
 
 ==================================================
-Strings
+Strings [ NOT IMPLEMENTED ]
 =======
 
 Strings in X++26 are {ANSI.BOLD}pointers{ANSI.END} leading to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character.
@@ -341,11 +341,12 @@ var str: string
 
 ```asm
 ; initialize str.descriptionVec
-PUSH 0x8000  ; str[0]
-STORE 0x1008 ; str.descriptionVec[0] = &str[0]
 PUSH 1       ; length including '\0'
 STORE 0x1009 ; str.descriptionVec[1] = str.length
 PUSH 16
+DUP
+SYS 21       ; malloc
+STORE 0x1008 ; str.descriptionVec[0] = &str[0]
 STORE 0x100A ; str.descriptionVec[2] = str.capacity
 
 PUSH 0x1008  ; &str.descriptionVec[0]
@@ -355,25 +356,46 @@ STORE 0x1007 ; str
 ; The next free address would be 0x100B, as the description vector for a string occupies 3 addresses.
 ```
 
-{ANSI.BOLD}Assignment{ANSI.END}
+{ANSI.BOLD}Assignment (if new string length <= current capacity){ANSI.END}
 
 ```xpp26
 str = "Hi"
 ```
 
 ```asm
-PUSH 72      ; 'H'
-STORE 0x8000 ; str[0] -> 'H'
-PUSH 105     ; 'i'
-STORE 0x8001 ; str[1] -> 'i'
-PUSH 0
-STORE 0x8002 ; str[2] -> '\0'
+LOAD 0x1007  ; Push address of string pointer (&str[0])
+LOADIND      ; Stack: `[ ptr ]` (points to str[0])
 
-; re-initialize str.descriptionVec
-PUSH 0x8000  ; str[0]
-STORE 0x1008 ; str.descriptionVec[0] = &str[0]
-PUSH 3       ; length including '\0'
-STORE 0x1009 ; str.descriptionVec[1] = str.length
+DUP          ; Stack: `[ ptr, ptr ]`
+PUSH 72      ; Stack: `[ ptr, ptr, 72 ]` ('H')
+STREIND      ; Write 'H' to ptr. Stack: `[ ptr ]`
+INCI         ; Stack: `[ ptr+1 ]`
+
+DUP          ; Stack: `[ ptr+1, ptr+1 ]`
+PUSH 105     ; Stack: `[ ptr+1, ptr+1, 105 ]` ('i')
+STREIND      ; Write 'i' to ptr+1. Stack: `[ ptr+1 ]`
+INCI         ; Stack: `[ ptr+2 ]`
+
+PUSH 0       ; Stack: `[ ptr+2, 0 ]`
+STREIND      ; Write '\0' to ptr+2. Stack: `[ ]`
+
+; re-initialize vector length
+PUSH 3       
+STORE 0x1009 ; str.descriptionVec[1] = 3
+```
+
+or alternatively:
+
+```asm
+PUSH :STR_LIT_0  ; assumes "Hi\0" is at label `STR_LIT_0` in PROM
+LOAD 0x1007      ; &str.descriptionVec[0]
+LOADIND          ; &str[0]
+PUSH 3           ; ('H', 'i', '\0')
+LOOKUP
+
+; re-initialize vector length
+PUSH 3       
+STORE 0x1009     ; str.descriptionVec[1] = 3
 ```
 
 {ANSI.BOLD}Access Character{ANSI.END}
@@ -400,13 +422,13 @@ LOADIND
        .
        . (all addresses in between are irrelevant)
        .
-0x8000 [ char -> 'H'   ] (str[0])
+0x8000 [ char -> 'H'   ] (str[0]) // first free address in the heap
 0x8001 [ char -> 'i'   ] (str[1])
 0x8002 [ char -> '\0'  ] (str[2])
 ```
 
 ==================================================
-Inputs and Outputs
+Input and Output [ NOT IMPLEMENTED ]
 ========
 
 {ANSI.BOLD}Output{ANSI.END}
@@ -445,123 +467,6 @@ Lorem ipsum
 
 {ANSI.BOLD}{ANSI.YELLOW}OUTPUT{ANSI.END}
 You have entered: Lorem ipsum
-
-==================================================
-I/O Assembly Implementation
-========
-
-{ANSI.BOLD}Output String{ANSI.END}
-
-```xpp26
-out << str
-```
-
-```asm
-LOAD &str    ; &str.descriptionVec[0]
-LOADIND      ; &str[0]
-SYS 1        ; output syscall
-```
-
-{ANSI.BOLD}Output Character Array{ANSI.END}
-
-```xpp26
-out << char_array
-```
-
-```asm
-LOAD &char_array[0]
-SYS 1                  ; output syscall
-```
-
-{ANSI.BOLD}Output Character{ANSI.END}
-
-```xpp26
-out << 'A'
-```
-
-```asm
-PUSH 65 ; 'A'
-SYS 9   ; put_chars syscall
-```
-
-{ANSI.BOLD}Output Integer{ANSI.END}
-
-```xpp26
-out << 42
-```
-
-```asm
-PUSH &buffer
-PUSH 42
-SYS 5          ; inttostr syscall
-
-LOAD &buffer   ; buffer.descriptionVec[0]
-LOADIND
-SYS 1          ; output syscall
-```
-
-{ANSI.BOLD}Output Float{ANSI.END}
-
-```xpp26
-out << 3.14
-```
-
-```asm
-PUSH &buffer
-PUSH 0x4048F5C3 ; 0x4048F5C3 -> 3.14
-SYS 6           ; floattostr syscall
-
-LOAD &buffer   ; buffer.descriptionVec[0]
-LOADIND
-SYS 1           ; output syscall
-```
-
-{ANSI.BOLD}Output Boolean{ANSI.END}
-
-```xpp26
-out << true
-```
-
-```asm
-PUSH &buffer
-PUSH 0xFFFFFFFF ; true
-SYS 7           ; booltostr syscall
-
-LOAD &buffer    ; buffer.descriptionVec[0]
-LOADIND
-SYS 1           ; output syscall
-```
-
-{ANSI.BOLD}Output Pointer{ANSI.END}
-
-```xpp26
-out << ptr
-```
-
-```asm
-PUSH &buffer
-LOAD &ptr
-SYS 8          ; inttohex syscall
-
-LOAD &buffer   ; buffer.descriptionVec[0]
-LOADIND
-SYS 1          ; output syscall
-```
-
-The semantic analyzer will handle these cases automatically.
-
----
-
-{ANSI.BOLD}Input String{ANSI.END}
-
-```xpp26
-in >> message
-```
-
-```asm
-LOAD 0x100B ; &message
-SYS 2       ; input syscall
-```
 
 ==================================================
 Implicit Type Conversions
@@ -606,7 +511,7 @@ x = (int) 3.14
 ```
 
 ==================================================
-Iteration
+Iteration [ NOT IMPLEMENTED ]
 ========
 
 {ANSI.BOLD}For Loop{ANSI.END}
@@ -687,309 +592,426 @@ BRNZ :beginrepeat
 ```
 
 ==================================================
-Xenon-131 VM
+Functions and Procedures [ NOT IMPLEMENTED ]
 ========
 
-* {ANSI.GREEN}Stack-based{ANSI.END} (200000 items -> {ANSI.YELLOW}781.25 KiB{ANSI.END})
-* {ANSI.GREEN}Untyped{ANSI.END}
-* {ANSI.GREEN}32-bit data{ANSI.END}
-* {ANSI.GREEN}36-bit instructions{ANSI.END} ({ANSI.YELLOW}4b{ANSI.END} opcode, {ANSI.YELLOW}32b{ANSI.END} data)
-* {ANSI.CYAN}65536 RAM addresses{ANSI.END}  {ANSI.YELLOW}(256 KiB){ANSI.END}
-* {ANSI.CYAN}65536 PROM addresses{ANSI.END} {ANSI.YELLOW}(288 KiB){ANSI.END}
--> Total capacity: {ANSI.PURPLE}1325.25 KiB{ANSI.END} = {ANSI.RED}1.294 MiB{ANSI.END}
+In X++26, reusable code units are divided into two distinct paradigms:
+
+{ANSI.CYAN}Functions (`fn`){ANSI.END}: Perform a computation and return a single typed value.
+
+{ANSI.CYAN}Procedures (`proc`){ANSI.END}: Perform actions, modify state, or execute procedures without returning a value.
+
+Because the Xenon-131 VM utilizes an isolated hardware Data Stack (DS) and Return Stack (RS) separate from RAM, call frames and local variables cannot reside in RAM. Instead, they are managed directly on the Data Stack using a stack-relative Frame Pointer (FP) register.
+
+The VM provides five dedicated instructions for this:
+
+* {ANSI.GREEN}PUSHFP{ANSI.END}: Pushes the current Frame Pointer register onto the top of the Data Stack.
+* {ANSI.GREEN}POPFP{ANSI.END}: Pops the top value of the Data Stack back into the FP register.
+* {ANSI.GREEN}SETFP{ANSI.END}: Assigns the current Stack Pointer index to the Frame Pointer (`FP = SP`).
+* {ANSI.GREEN}LOADSP {ANSI.END}: Copies the value at `DS[FP + offset]` to the top of the stack.
+* {ANSI.GREEN}STORESP {ANSI.END}: Pops the top stack value and writes it to `DS[FP + offset]`.
+
+{ANSI.BOLD}{ANSI.YELLOW}Procedures (`proc`){ANSI.END}
+
+Procedures are defined using the `proc` keyword, do not return a value, and must be invoked using the explicit `call` statement.
+
+{ANSI.BOLD}Declaration Syntax:{ANSI.END}
+
+```xpp26
+proc name(arg1: type, arg2: type, ...) {
+    # local variable declarations
+    # body
+}
+```
+
+
+{ANSI.BOLD}Syntax of calling a procedure:{ANSI.END}
+
+```xpp26
+call name(arg1, arg2, ...)
+```
+
+{ANSI.YELLOW}Example procedure:{ANSI.END}
+
+```xpp26
+proc print_sum(a: int, b: int) {
+    var temp: int
+    temp = a + b
+    out << temp << '\n'
+}
+
+call print_sum(5, 12)
+```
+
+
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
+
+```asm
+; --- Call Site ---
+PUSH 5              ; Arg 'a' (will be at FP + 2)
+PUSH 12             ; Arg 'b' (will be at FP + 1)
+CALL :print_sum     ; Push return PC to RS and branch
+
+; --- Subroutine Implementation ---
+:print_sum
+    PUSHFP          ; Save caller's FP (at FP + 0)
+    SETFP           ; Establish new frame: FP = SP
+    PUSH 0          ; Allocate 1 local variable 'temp' (at FP - 1)
+    
+    ; temp = a + b
+    LOADSP 2        ; Load 'a'
+    LOADSP 1        ; Load 'b'
+    ADDI            ; a + b
+    STORESP -1      ; Store to 'temp'
+    
+    ; out << temp
+    PUSH 0x2000     ; &buffer (RAM address allocated for conversions)
+    LOADSP -1       ; Load 'temp' value
+    SYS 5           ; inttostr syscall
+    LOAD 0x2000     ; &buffer
+    LOADIND         ; buffer[0]
+    SYS 1           ; output syscall
+    
+    ; out << '\n'
+    PUSH 10         ; '\n' ASCII character code
+    SYS 9           ; put_char syscall
+    
+    ; --- Epilog & Clean Stack Exit ---
+    POP             ; Deallocate local variable 'temp'
+    POPFP           ; Restore caller's FP
+    
+    ; Stack currently contains: [..., a, b]
+    ; We must discard parameters 'a' and 'b' (2 elements) on return
+    RET 2           ; Return and pop 2 arguments off the Data Stack
+```
+
+{ANSI.BOLD}{ANSI.YELLOW}Functions (`fn`){ANSI.END}
+
+Functions are defined using the `fn` keyword, must specify a return type, must terminate with a return statement, and are called as inline expressions.
+
+{ANSI.BOLD}Declaration Syntax:{ANSI.END}
+
+```xpp26
+fn return_type name(arg1: type, arg2: type, ...) {
+    # local variable declarations
+    # body
+    return value
+}
+```
+
+{ANSI.BOLD}Syntax of calling a function:{ANSI.END}
+
+```xpp26
+var result: type
+result = name(arg1, arg2, ...)
+```
+
+{ANSI.YELLOW}Example: Recursive Factorial (`n!`){ANSI.END}
+
+```xpp26
+fn int factorial(n: int) {
+    if (n <= 1) {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+var x: int
+x = factorial(5)
+```
+
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
+
+```asm
+; --- Call Site ---
+PUSH 5              ; Push argument N
+CALL :factorial     ; Jump to recursive function
+STORE 0x1000        ; Store returned value in variable `x`
+
+; --- Function Implementation ---
+:factorial
+    PUSHFP          ; Save caller's FP (at FP + 0)
+    SETFP           ; Base of current stack frame
+    
+    ; If (n <= 1) -> n - 1 <= 0
+    LOADSP 1        ; Load 'n'
+    PUSH 1
+    ILE
+    BRNZ :base_case ; If n - 1 < 0, jump to base case
+    
+    ; Recursive path: return n * factorial(n - 1)
+    LOADSP 1        ; Load 'n' to preserve on the stack for later multiplication
+    
+    LOADSP 1        ; Load 'n' again to calculate recursive argument
+    PUSH 1
+    SUBI            ; n - 1
+    
+    CALL :factorial ; Recursive invocation!
+                    ; Stack top is now: [..., n, factorial(n - 1)]
+    MULI            ; n * factorial(n - 1)
+    JUMP :cleanup
+
+:base_case
+    PUSH 1          ; Return value for base case
+
+:cleanup
+    ; At this point, Stack looks like: [..., Saved FP, Argument 'n', Return Value]
+    ; We must preserve the return value while popping the frame metadata
+    
+    STORESP 1       ; Overwrite the Argument 'n' slot with the Return Value
+    POPFP           ; Restore caller's FP (removes saved FP from the stack)
+    
+    ; Stack now contains: [..., Return Value]
+    RET             ; Pop Return Stack (RS) into PC and return to caller
+```
+
+{ANSI.BOLD}Frame Allocation{ANSI.END}
+
+During active execution of factorial(n), the private Data Stack (DS) layout is dynamically indexed via the FP register offsets as follows:
+
+```
+
+        Data Stack (DS)           Frame Offset
+   ┌─────────────────────────┐
+   │ Argument 'n'          │  FP + 1
+   ├─────────────────────────┤
+   │ Saved Caller FP       │  FP + 0   <--- [FP Register Points Here]
+   ├─────────────────────────┤
+   │ Evaluation Stack Space│  FP - 1 (Grows downward during math ops)
+   └─────────────────────────┘
+```
+
+This architecture permits unlimited recursion and local variable scopes, as every nested scope gets its own stack-allocated, stack-relative frame boundary.
 
 ==================================================
-Instruction Set
+Dynamic Memory
 ========
 
-{ANSI.BOLD}Stack Instructions{ANSI.END}
+Dynamic memory allocation in X++26 allows variables to be instantiated on the heap during runtime. This is critical for resizing arrays, dynamic string adjustments, and creating long-lived object/struct instances that persist beyond their local function/procedure scope.
 
-```
-PUSH x      - Pushes a 32-bit integer x to the stack.
-POP         - Pops the last value from the stack.
+{ANSI.BOLD}{ANSI.YELLOW}The Heap Model{ANSI.END}
+The Xenon-131 Virtual Machine handles heap allocations via the standard syscall interface:
 
-LOAD x      - Loads the 32-bit integer at address x and pushes it to the stack.
-STORE x     - Stores the top of the stack to address x and pops the stack.
-LOADIND     - Pops a from the stack and loads from address a.
-STREIND     - Pops a and b from the stack and stores b to address a.
+{ANSI.CYAN}SYS 21 (SYS_MALLOC){ANSI.END}: Expects the size (number of 32-bit words) on top of the stack. Pops size, reserves contiguous memory on the heap, and pushes the starting RAM address of that block to the stack. If no memory is available, it raises a HeapOverflow interrupt.
 
-DUP         - Duplicates the top of the stack.
-SWAP        - Swaps the 2 topmost elements of the stack.
-OVER        - Copies the second item on the stack to the very top.
-```
+{ANSI.CYAN}Freeing Memory{ANSI.END}: The XVM uses a simplified allocator. For larger implementations, memory blocks track metadata (like size) immediately preceding the returned pointer block.
 
-{ANSI.BOLD}Type Conversion Instructions{ANSI.END}
+{ANSI.BOLD}Allocation (new Operator){ANSI.END}
+The new operator dynamically requests a block of memory of a specific size or type.
 
-```
-I2F         - Converts the top of the stack into a float.
-F2I         - Converts the IEEE-754 representation of a float on top of the stack into an integer.
-BOOL        - Converts the top of the stack into a boolean (-1 or 0)
+```xpp26
+# Allocate a raw buffer of 5 elements
+var my_ptr: int*
+my_ptr = new int[5]
 ```
 
-{ANSI.BOLD}Binary Operations{ANSI.END}
-{ANSI.YELLOW}These operations pop 2 values from the stack, a and b, and push the result to the stack.
-This assumes a is pushed before b.{ANSI.END}
 
-```
-Integer Arithmetic:
-ADDI  - Performs a + b, assuming the operands are integers.
-SUBI  - Performs a - b, assuming the operands are integers.
-MULI  - Performs a * b, assuming the operands are integers.
-DIVI  - Performs a / b (integer division), assuming the operands are integers.
-MODI  - Performs a % b, assuming the operands are integers.
-POWI  - Performs a ** b, assuming the operands are integers.
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
 
-Float Arithmetic:
-ADDF  - Performs a + b, assuming the operands are floats.
-SUBF  - Performs a - b, assuming the operands are floats.
-MULF  - Performs a * b, assuming the operands are floats.
-DIVF  - Performs a / b, assuming the operands are floats.
-MODF  - Performs a % b, assuming the operands are floats.
-POWF  - Performs a ** b, assuming the operands are floats.
-
-Bitwise Operations:
-AND   - Performs a & b, assuming the operands are integers.
-OR    - Performs a | b, assuming the operands are integers.
-XOR   - Performs a ^ b, assuming the operands are integers.
-
-Integer Comparisons:
-IEQ   - Performs a == b, assuming the operands are integers.
-INE   - Performs a != b, assuming the operands are integers.
-ILT   - Performs a < b, assuming the operands are integers.
-ILE   - Performs a <= b, assuming the operands are integers.
-IGT   - Performs a > b, assuming the operands are integers.
-IGE   - Performs a >= b, assuming the operands are integers.
-
-Float Comparisons:
-FEQ   - Performs a == b, assuming the operands are floats.
-FNE   - Performs a != b, assuming the operands are floats.
-FLT   - Performs a < b, assuming the operands are floats.
-FLE   - Performs a <= b, assuming the operands are floats.
-FGT   - Performs a > b, assuming the operands are floats.
-FGE   - Performs a >= b, assuming the operands are floats.
+```asm
+PUSH 5       ; Number of 32-bit cells to allocate
+SYS 21       ; SYS_MALLOC. Returns heap address (e.g., 0x8050)
+STORE 0x1000 ; Store address in `my_ptr`
 ```
 
-{ANSI.BOLD}Unary Operations:{ANSI.END}
-{ANSI.YELLOW}These operations pop a value a from the stack and push the result to the stack.{ANSI.END}
 
-```
-NEGI  - Performs -a, assuming a is an integer.
-NEGF  - Performs -a, assuming a is a float.
-NOT   - Performs ~a, assuming a is an integer.
-```
+==================================================
+Structs
+========
 
-{ANSI.BOLD}Jumping and Branching:{ANSI.END}
+Structs are contiguous blocks of memory containing structured, typed data fields. In X++26, a struct variable is represented as a {ANSI.PURPLE}pointer{ANSI.END} holding the starting address of its data block in RAM (either on the stack frame or heap).
 
-```
-JUMP x   - Loads x to IP (instruction pointer).
-BRZ x    - Loads x to IP if the value on top of the stack is 0.
-BRNZ x   - Loads x to IP if the value on top of the stack is not 0.
+{ANSI.BOLD}Declaration & Definition{ANSI.END}
+Struct types are declared with named, typed fields.
 
-CALL x   - Pushes IP + 1 to the call stack and loads x to IP.
-CALZ x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is 0.
-CALN x   - Pushes IP + 1 to the call stack and loads x to IP if the top of stack is not 0.
+```xpp26
+struct Point {
+    x: int
+    y: int
+}
 
-RET      - Pops the call stack into IP.
-RETZ     - Pops the call stack into IP if the top of stack is 0.
-RETN     - Pops the call stack into IP if the top of stack is not 0.
+# Declares a local Point instance on the stack
+var p: Point
 ```
 
-{ANSI.BOLD}System Instructions:{ANSI.END}
+
+{ANSI.BOLD}Memory Layout of Point:{ANSI.END}
+When a struct variable is allocated, fields are packed sequentially, with each field occupying at least one 32-bit RAM/stack cell.
 
 ```
-HALT     - Shuts down the entire VM.
-WAIT     - Pauses execution until interrupts are raised.
+p ---> [ offset 0: x (int) ] (RAM Address/Base Offset)
+       [ offset 1: y (int) ]
+```
 
-INT x    - Raises an interrupt to the VM.
-IRT      - Resolves the current interrupt.
-IRTZ     - Resolves the current interrupt if the value on top of stack is 0.
-IRTN     - Resolves the current interrupt if the value on top of stack is not 0.
+{ANSI.BOLD}Field Access & Assignment{ANSI.END}
+Fields are accessed using dot notation (struct.field). The compiler translates these accesses into static offsets relative to the struct instance's base pointer.
 
-SYS x    - Raises a syscall to be handled by the kernel.
+```xpp26
+p.x = 10
+p.y = 20
+```
+
+{ANSI.YELLOW}Compiler Output (Assuming p resides at address 0x1015):{ANSI.END}
+
+```asm
+; p.x = 10 (offset 0)
+PUSH 10
+STORE 0x1015   ; p.x
+
+; p.y = 20 (offset 1)
+PUSH 20
+STORE 0x1016   ; p.y (0x1015 + 1)
+```
+
+
+{ANSI.BOLD}Dynamic Struct Instantiation (new Structs){ANSI.END}
+When a struct is created dynamically via the new keyword, its memory is requested on the heap via SYS 21.
+
+```xpp26
+var dynamic_p: Point*
+dynamic_p = new Point
+dynamic_p.y = 42
+```
+
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
+
+```asm
+; dynamic_p = new Point (Size of Point is 2)
+PUSH 2
+SYS 21         ; SYS_MALLOC. Stack: [ heap_addr ]
+STORE 0x1017   ; Store heap address in `dynamic_p`
+
+; dynamic_p.y = 42 (offset 1)
+PUSH 1         ; Field offset for 'y'
+LOAD 0x1017    ; Load base address of `dynamic_p`
+ADDI           ; Calculate heap_addr + 1
+PUSH 42        ; Value to store
+STREIND        ; Store 42 at address (heap_addr + 1)
 ```
 
 ==================================================
-Data Structure Representations
+OOP (Object-Oriented Programming)
 ========
 
-{ANSI.BOLD}Integer{ANSI.END}
-* Each integer is stored as a 32-bit signed value and occupies 1 memory address.
-* Range: -2147483648 to 2147483647 inclusive.
+Object-Oriented Programming in X++26 extends the structural layout of structs by introducing encapsulation, methods, constructors, and inheritance.
+Under the hood, objects are represented similarly to structs, with fields mapped to offset values and methods translated into standard functions/procedures with an implicit pointer parameter named `this`.
 
-{ANSI.BOLD}Float{ANSI.END}
-* Each float is stored as a 32-bit value (single-precision) and occupies 1 address in memory.
-* It adheres to IEEE-754 specifications:
+{ANSI.BOLD}Class Definition Syntax{ANSI.END}
+
+```xpp26
+class Player {
+    # Member fields
+    hp: int
+    score: int
+
+    # Constructor
+    proc init(starting_hp: int) {
+        this.hp = starting_hp
+        this.score = 0
+    }
+
+    # Member Method
+    fn int get_score() {
+        return this.score
+    }
+}
+```
+
+{ANSI.BOLD}Object Layout in Memory{ANSI.END}
+An instance of Player is stored as a block of contiguous memory containing only its member fields. Methods are stored as global routines in PROM; they do not occupy space inside individual object instances.
 
 ```
-x xxxxxxxx xxxxxxxxxxxxxxxxxxxxxxx
-_ ________ _______________________
-
-1 sign bit        -> S
-8 exponent bits   -> E + 127
-23 mantissa bits  -> 1 + M (24 bits of precision)
-
-Value = (-1)^S * 2^(E + 127) * (1 + M)
+player_inst ---> [ offset 0: `hp`    ] (32-bit signed int)
+                 [ offset 1: `score` ] (32-bit signed int)
 ```
 
-* Range: -3.4e38 to 3.4e38 inclusive.
-* Maximum safe integer: 2^24 (16777216).
 
-{ANSI.BOLD}Boolean{ANSI.END}
-* Booleans are represented using 2 values:
-  - {ANSI.PURPLE}false{ANSI.END} = 0x00000000 (0)
-  - {ANSI.PURPLE}true{ANSI.END}  = 0xFFFFFFFF (-1)
-* This allows logical and bitwise AND, OR, NOT, and XOR to share the same opcodes.
+{ANSI.BOLD}Constructors (init Procedures){ANSI.END}
+When an object is instantiated, memory is allocated (either on the stack or dynamically on the heap), and its explicit initialization routine (init) is executed immediately.
 
-{ANSI.BOLD}Pointer{ANSI.END} - not implemented
-{ANSI.BOLD}Array{ANSI.END} - not implemented
-{ANSI.BOLD}String{ANSI.END} - not implemented
-{ANSI.BOLD}Character{ANSI.END} - not implemented
-{ANSI.BOLD}Subroutine{ANSI.END} - not implemented
-{ANSI.BOLD}Objects{ANSI.END} - not implemented
+```xpp26
+var hero: Player*
+hero = new Player(100)
+```
 
-==================================================
-Syscalls
-========
-
-{ANSI.BOLD}I/O Syscalls{ANSI.END}
-
-{ANSI.CYAN}1 - OUTPUT_STR{ANSI.END}
-Outputs the string at the string pointer on top of the stack.
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```asm
-PUSH &str
-LOADIND
-SYS 1
+; --- Instantiate and Call Constructor ---
+PUSH 2              ; Size of Player fields (hp, score)
+SYS 21              ; Allocate on heap. Stack: [ heap_ptr ]
+STORE 0x1010        ; hero = heap_ptr
+
+; --- Call Constructor Hero.init(100) ---
+LOAD 0x1010         ; Pass `this` pointer implicitly (will be at FP + 2)
+PUSH 100            ; Pass parameter `starting_hp` (will be at FP + 1)
+CALL :Player__init   ; Jump to constructor label
+
+:Player__init
+    PUSHFP          ; Save caller's FP
+    SETFP           ; Set FP = SP
+    
+    ; this.hp = starting_hp
+    LOADSP 1        ; Load `starting_hp` (FP + 1)
+    LOADSP 2        ; Load `this` pointer (FP + 2)
+    STREIND         ; Store `starting_hp` at `this` (offset 0)
+
+    ; this.score = 0
+    PUSH 1          ; Offset for `score`
+    LOADSP 2        ; Load `this` pointer
+    ADDI            ; Address of `this.score`
+    PUSH 0          ; Value 0
+    STREIND         ; Store 0
+
+    POPFP           ; Restore FP
+    RET 2           ; Return and pop 2 arguments (`this`, `starting_hp`)
 ```
 
-{ANSI.CYAN}2 - READ_STR{ANSI.END}
-Pauses execution in the current process and waits for user input.
+{ANSI.BOLD}Method Dispatching & the `this` Pointer{ANSI.END}
+Method invocations translate directly into normal subroutine calls where the target instance pointer is prepended to the stack arguments, acting as the this variable.
+
+```xpp26
+var s: int
+s = hero.get_score()
+```
+
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```asm
-PUSH &str
-SYS 2
+; --- Method Call Site ---
+LOAD 0x1010         ; Push base object address `hero` onto stack as `this`
+CALL :Player__get_score
+STORE 0x1012        ; Store return value in `s`
+
+:Player__get_score
+    PUSHFP          ; Save caller's FP
+    SETFP           ; Set FP = SP
+
+    ; return this.score (offset 1)
+    PUSH 1          ; Offset 1
+    LOADSP 1        ; Load 'this' pointer (FP + 1)
+    ADDI            ; Address of this.score
+    LOADIND         ; Fetch value from address
+    
+    ; Stack clean up
+    STORESP 1       ; Overwrite 'this' argument slot with the return value
+    POPFP           ; Restore old FP
+    RET             ; Return to caller
 ```
 
-{ANSI.CYAN}3 - STRTOINT{ANSI.END}
-Converts the string at the pointer on top of the stack to an integer.
+{ANSI.BOLD}Inheritance & Virtual Tables (Vtables){ANSI.END}
+For advanced OOP, single inheritance is supported. If virtual methods are used, the first field of the object instance (offset 0) is reserved as a pointer to a Virtual Method Table (Vtable) stored in PROM.
 
-```asm
-PUSH &str
-SYS 3
-```
+Derived Object Instance (RAM)      Vtable (PROM)
+┌───────────────────────────┐      ┌──────────────────────────┐
+│ 0: Vtable Pointer ────────┼────> │ 0: Override Method A     │
+├───────────────────────────┤      │ 1: Base Method B         │
+│ 1: Parent Field 1         │      └──────────────────────────┘
+│ 2: Child Field 1          │
+└───────────────────────────┘
 
-{ANSI.CYAN}4 - STRTOFLOAT{ANSI.END}
-Converts the string at the pointer on top of the stack to a float.
 
-```asm
-PUSH &str
-SYS 4
-```
-
-{ANSI.CYAN}5 - INTTOSTR{ANSI.END}
-Converts the integer at the top of the stack to a string at address &str.
-
-```asm
-PUSH &str
-PUSH 42
-SYS 5
-```
-
-{ANSI.CYAN}6 - FLOATTOSTR{ANSI.END}
-Converts the float at the top of the stack to a string at address &str.
-
-```asm
-PUSH &str
-PUSH 0x4048F5C3  ; 0x4048F5C3 -> 3.14
-SYS 6
-```
-
-{ANSI.CYAN}7 - BOOLTOSTR{ANSI.END}
-Converts the boolean at the top of the stack to a string at address &str.
-
-```asm
-PUSH &str
-PUSH 0xFFFFFFFF  ; true
-SYS 7
-```
-
-{ANSI.CYAN}8 - INTTOHEX{ANSI.END}
-Converts the integer at the top of the stack to a hexadecimal string at address &str.
-
-```asm
-PUSH &str
-PUSH 255
-SYS 8  ; converts to "0x00FF"
-```
-
-{ANSI.CYAN}9 - PUT_CHAR{ANSI.END}
-Outputs the character on top of the stack.
-
-```asm
-PUSH 65  ; ASCII 'A'
-SYS 9
-```
-
-{ANSI.BOLD}String Syscalls{ANSI.END}
-
-{ANSI.CYAN}10 - STR_CONCAT{ANSI.END}
-Concatenates str1 and str2, storing the result in str3.
-
-```asm
-PUSH &str1
-PUSH &str2
-PUSH &str3
-SYS 10
-```
-
-{ANSI.CYAN}11 - STR_COMPARE{ANSI.END}
-Compares str1 and str2, pushing the boolean result to the stack.
-
-```asm
-PUSH &str1
-PUSH &str2
-SYS 11  ; pushes -1 (true) if equal, 0 (false) otherwise
-```
-
-{ANSI.CYAN}12 - STR_COPY{ANSI.END}
-Copies str1 to str2.
-
-```asm
-PUSH &str1
-PUSH &str2
-SYS 12
-```
-
-{ANSI.BOLD}System Syscalls{ANSI.END}
-
-{ANSI.CYAN}20 - SYS_GETTIME{ANSI.END}
-Pushes the current execution time (in milliseconds) to the stack.
-
-```asm
-SYS 20  ; -> int (time in ms)
-```
-
-{ANSI.CYAN}30 - SYS_EXIT{ANSI.END}
-Pops the exit code from the stack and commands the VM to terminate the current process.
-
-```asm
-PUSH 0
-SYS 30  ; exit with code 0
-```
-
-{ANSI.BOLD}Graphics Syscalls{ANSI.END}
-(Reserved for future use)
-
-{ANSI.BOLD}Other Syscalls{ANSI.END}
-
-{ANSI.CYAN}60 - REQUEST{ANSI.END}
-Sends a request to a cloud backend using cloud variables and waits for the result.
-
-```asm
-PUSH backend_id
-PUSH destination_address
-SYS 60  ; sends request and stores result
-```
+Virtual calls are resolved at runtime by loading the vtable pointer, offsetting by the method index, loading the target PROM address, and executing a dynamic jump.
 
 ==================================================
 Planned Features
@@ -1002,6 +1024,7 @@ Planned Features
 * Functions
 
 {ANSI.UNDERLINE}0.3.0{ANSI.END}
+* OOP
 * Structs
 * Dynamic Memory
 
