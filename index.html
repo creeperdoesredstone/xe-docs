@@ -733,7 +733,7 @@
 					],
 				};
 			});
-			
+
 			output.addEventListener("scroll", () => {
 				if (output.scrollTop > 300) {
 					backToTop.classList.add("show");
@@ -881,14 +881,6 @@
 					.replace(/&amp;/g, "&");
 			}
 
-			function renderInlineMarkup(text) {
-				return text
-					.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-					.replace(/__(.+?)__/g, "<strong>$1</strong>")
-					.replace(/\*(.+?)\*/g, "<em>$1</em>")
-					.replace(/_(.+?)_/g, "<em>$1</em>");
-			}
-
 			function renderMarkdownBlocks(text) {
 				const lines = text.split(/\r?\n/);
 				const output = [];
@@ -900,7 +892,7 @@
 				const flushParagraph = () => {
 					if (paragraphLines.length) {
 						output.push(
-							`<p>${renderInlineMarkup(paragraphLines.join(" "))}</p>`,
+							`<p>${paragraphLines.join(" ")}</p>`,
 						);
 						paragraphLines = [];
 					}
