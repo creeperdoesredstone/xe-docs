@@ -126,27 +126,31 @@ RETN x   - Pops the call stack into IP if the top of stack is not 0 and pops `x`
 {ANSI.BOLD}System Instructions:{ANSI.END}
 
 ```
-HALT      - Shuts down the entire VM.
-WAIT      - Pauses execution until interrupts are raised.
+HALT        - Shuts down the entire VM.
+WAIT        - Pauses execution until interrupts are raised.
 
-INT x     - Raises an interrupt to the VM.
-IRT       - Resolves the current interrupt.
-IRTZ      - Resolves the current interrupt if the value on top of stack is 0.
-IRTN      - Resolves the current interrupt if the value on top of stack is not 0.
-IM x      - Sets the interrupt mask to `x`.
+SETIM x     - Sets the interrupt mask to `x`.
+PUSHIM      - Pushes the current value of the interrupt mask to the stack.
+POPIM       - Pops the topmost value of the stack into the interrupt mask.
 
-LOOKUP    - Pops &src, &dest, and size from the stack, and copys `size` bytes from &src in PROM to &dest in RAM.
+INT x       - Raises an interrupt to the VM.
+IRT         - Resolves the current interrupt.
+IRTZ        - Resolves the current interrupt if the value on top of stack is 0.
+IRTN        - Resolves the current interrupt if the value on top of stack is not 0.
 
-SYS x     - Raises a syscall to be handled by the kernel.
+LOOKUP size - Pops `&src` and `&dest` from the stack, and copies `size` bytes from &src in PRAM to &dest in DRAM.
+WRITE size  - Pops `&src` and `&dest` from the stack, and copies `size` bytes from &src in DRAM to &dest in PRAM.
 
-OFFSET x  - Sets the current store offset to `x`.
-LOADOFF x - Sets the store offset to the value at address `x`.
-LOADINOFF - Sets the store offset to the value at the address on the top of the stack.
-PUSHOFF   - Pushes `OFFSET` to the stack.
-POPOFF    - Pops the topmost value of the stack to `OFFSET`.
+SYS x       - Raises a syscall to be handled by the kernel.
 
-ENABOFF  - Disables offseting when reading from memory
-DISABOFF - Enables offseting when reading from memory
+OFFSET x    - Sets the current store offset to `x`.
+LOADOFF x   - Sets the store offset to the value at address `x`.
+LOADINOFF   - Sets the store offset to the value at the address on the top of the stack.
+PUSHOFF     - Pushes `OFFSET` to the stack.
+POPOFF      - Pops the topmost value of the stack to `OFFSET`.
+
+ENABOFF     - Disables offseting when reading from memory
+DISABOFF    - Enables offseting when reading from memory
 ```
 
 ==================================================
