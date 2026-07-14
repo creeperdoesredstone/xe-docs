@@ -139,7 +139,7 @@ var x: int
 {ANSI.YELLOW}Assembly Output:{ANSI.END}
 ```xas
 ; Nothing! This is for the semantic analyzer to handle.
-; The variable `x` would be assigned to the next free address (0x1000 in this case).
+; The variable `x` would be assigned to the next free address (0x0000 in this case).
 ```
 
 {ANSI.BOLD}Assignment{ANSI.END}
@@ -150,7 +150,7 @@ x = 5
 
 ```xas
 PUSH 5
-STORE 0x1000  ; x
+STORE 0x0000  ; x
 ```
 
 {ANSI.BOLD}Access{ANSI.END}
@@ -160,7 +160,7 @@ x
 ```
 
 ```xas
-LOAD 0x1000  ; x
+LOAD 0x0000  ; x
 ```
 
 ==================================================
@@ -185,7 +185,7 @@ var ptr: int*
 
 ```xas
 ; Nothing! This is for the semantic analyzer to handle.
-; The variable `ptr` would be assigned to the next free address (0x1001 in this case).
+; The variable `ptr` would be assigned to the next free address (0x0001 in this case).
 ```
 
 {ANSI.BOLD}Assignment{ANSI.END}
@@ -197,12 +197,12 @@ ptr = &x
 
 ```xas
 ; ptr = &x
-PUSH 0x1000  ; &x
-STORE 0x1001 ; ptr
+PUSH 0x0000  ; &x
+STORE 0x0001 ; ptr
 
 ; *ptr = 42
 PUSH 42
-LOAD 0x1001  ; ptr
+LOAD 0x0001  ; ptr
 STREIND
 ```
 
@@ -213,7 +213,7 @@ STREIND
 ```
 
 ```xas
-LOAD 0x1001  ; ptr
+LOAD 0x0001  ; ptr
 LOADIND
 ```
 
@@ -226,7 +226,7 @@ var ptr: int*
 x = 5
 ptr = &x
 
-out << ptr << '\n'   # 0x1000
+out << ptr << '\n'   # 0x00000000
 out << *ptr << '\n'  # 5
 
 x = 7
@@ -256,9 +256,9 @@ array arr: int[3]
 ```
 
 ```xas
-; Nothing! This is for the semantic analyzer to handle.
-; The array pointer `arr` would be assigned to the next free address (0x1002 in this case).
-; The next free address would be 0x1007, as arr[] occupies 3+1+1 = 5 memory addresses.
+PUSH 3
+SYS 21       ; allocate 3 elements
+STORE 0x0002 ; store pointer to first element in `arr`
 ```
 
 {ANSI.BOLD}Initialization{ANSI.END}
@@ -268,19 +268,25 @@ arr = [1, 2, 3]
 ```
 
 ```xas
-; store pointer
-PUSH 0x1003  ; &arr[0]
-STORE 0x1002 ; arr
+; load pointer
+LOAD 0x0002 ; stack: `[ &arr[0] ]`
 
+DUP
 PUSH 1
-STORE 0x1003 ; arr[0]
-PUSH 2
-STORE 0x1004 ; arr[1]
-PUSH 3
-STORE 0x1005 ; arr[2]
+STREIND     ; arr[0]
+INCI
 
-PUSH 0
-STORE 0x1006 ; terminator, useful when printing arrays
+DUP
+PUSH 2
+STREIND     ; arr[1]
+INCI
+
+DUP
+PUSH 3
+STREIND     ; arr[2]
+INCI
+
+POP
 ```
 
 {ANSI.BOLD}Set Element{ANSI.END}
@@ -291,7 +297,7 @@ arr[2] = 4
 
 ```xas
 PUSH 2
-LOAD 0x1002
+LOAD 0x0002
 ADDI
 PUSH 4
 STREIND
@@ -305,7 +311,7 @@ arr[2]
 
 ```xas
 PUSH 2
-LOAD 0x1002
+LOAD 0x0002
 ADDI
 LOADIND
 ```
@@ -317,14 +323,13 @@ LOADIND
 0x1003 [ int -> 1      ] (arr[0])
 0x1004 [ int -> 2      ] (arr[1])
 0x1005 [ int -> 4      ] (arr[2])
-0x1006 [ int -> 0      ] (terminator)
 ```
 
 ==================================================
 Strings
 =======
 
-Strings in Xe are {ANSI.BOLD}pointers{ANSI.END} leading to the first element of a contiguous block of memory containing sequence-ordered characters, terminated by a null character.
+A variable of type string stores a pointer to a string descriptor (description vector), which contains a pointer to a null-terminated character buffer, the current length, and the allocated capacity.
 Like {ANSI.PURPLE}integers{ANSI.END} and {ANSI.PURPLE}booleans{ANSI.END}, each character in the string occupies 1 full 32-bit memory address in the XVM.
 
 * {ANSI.BOLD}Declaration:{ANSI.END}      `var str: string`
@@ -340,62 +345,48 @@ var str: string
 ```
 
 ```xas
-; initialize str.descriptionVec
-PUSH 1       ; length including '\0'
-STORE 0x1009 ; str.descriptionVec[1] = str.length
-PUSH 16
-DUP
-SYS 21       ; malloc
-STORE 0x1008 ; str.descriptionVec[0] = &str[0]
-STORE 0x100A ; str.descriptionVec[2] = str.capacity
-
-PUSH 0x1008  ; &str.descriptionVec[0]
-STORE 0x1007 ; str
-
-; The string pointer `str` would be assigned to the next free address (0x1007 in this case).
-; The next free address would be 0x100B, as the description vector for a string occupies 3 addresses.
+; Nothing! This is for the semantic analyzer to handle.
+; The string pointer `str` would be assigned to the next free address (0x0003 in this case).
 ```
 
-{ANSI.BOLD}Assignment (if new string length <= current capacity){ANSI.END}
+{ANSI.BOLD}Assignment
 
 ```xe
 str = "Hi"
 ```
 
 ```xas
-LOAD 0x1007  ; Push address of string pointer (&str[0])
-LOADIND      ; Stack: `[ ptr ]` (points to str[0])
+PUSH 3
+SYS 21       ; allocate &"Hi".descriptor
+DUP
+DUP
 
-DUP          ; Stack: `[ ptr, ptr ]`
-PUSH 72      ; Stack: `[ ptr, ptr, 72 ]` ('H')
-STREIND      ; Write 'H' to ptr. Stack: `[ ptr ]`
-INCI         ; Stack: `[ ptr+1 ]`
+; stack: `[ &"Hi".descriptor[0], &"Hi".descriptor[0], &"Hi".descriptor[0] ]`
+PUSH 16
+SYS 21       ; allocate a character buffer with capacity 16
+STREIND      ; store character buffer pointer to &"Hi".descriptor[0]
+INCI
+DUP
 
-DUP          ; Stack: `[ ptr+1, ptr+1 ]`
-PUSH 105     ; Stack: `[ ptr+1, ptr+1, 105 ]` ('i')
-STREIND      ; Write 'i' to ptr+1. Stack: `[ ptr+1 ]`
-INCI         ; Stack: `[ ptr+2 ]`
+; stack: `[ &"Hi".descriptor[0], &"Hi".descriptor[1], &"Hi".descriptor[1] ]`
+PUSH 3       ; length including '\0'
+STREIND      ; store length to &"Hi".descriptor[1]
+INCI
+DUP
 
-PUSH 0       ; Stack: `[ ptr+2, 0 ]`
-STREIND      ; Write '\0' to ptr+2. Stack: `[ ]`
+; stack: `[ &"Hi".descriptor[0], &"Hi".descriptor[2], &"Hi".descriptor[2] ]`
+PUSH 16      ; capacity
+STREIND      ; store capacity to &"Hi".descriptor[2]
+DECI
+DECI         ; return pointer on stack to &"Hi".descriptor[0]
+LOADIND      ; load character buffer pointer
 
-; re-initialize vector length
-PUSH 3       
-STORE 0x1009 ; str.descriptionVec[1] = 3
-```
+; stack: `[ &"Hi".descriptor[0], &"Hi".buffer ]`
+PUSH STR_LIT_0 ; "Hi" is at `STR_LIT_0`
+LOOKUP 7     ; write "Hi\0" to character buffer
 
-or alternatively:
-
-```xas
-PUSH STR_LIT_0  ; assumes "Hi\0" is at label `STR_LIT_0` in PROM
-LOAD 0x1007      ; &str.descriptionVec[0]
-LOADIND          ; &str[0]
-PUSH 3           ; ('H', 'i', '\0')
-LOOKUP
-
-; re-initialize vector length
-PUSH 3       
-STORE 0x1009     ; str.descriptionVec[1] = 3
+; stack: `[ &"Hello ".descriptor[0] ]`
+STORE 0x0003 ; `str` now points to &"Hi".descriptor
 ```
 
 {ANSI.BOLD}Access Character{ANSI.END}
@@ -406,25 +397,46 @@ str[1]
 
 ```xas
 PUSH 1
-LOAD 0x1007  ; &str.descriptionVec[0]
-LOADIND      ; &str[0]
+LOAD 0x0003 ; &str.descriptor[0]
+LOADIND     ; &str[0]
 ADDI
 LOADIND
+```
+
+{ANSI.BOLD}Concatenation{ANSI.END}
+```xe
+var a: string
+a = "Hello "
+a + "World"
+```
+
+```xas
+...            ; initialize literal "Hello "
+; stack: `[ &"Hello ".descriptor ]`
+STORE 0        ; `a` now points to &"Hello ".descriptor
+LOAD 0
+; stack: `[ &a.descriptor ]`
+
+...            ; initialize literal "World"
+; stack: `[ &a.descriptor, &"World".descriptor ]`
+SYS 10         ; concatenate 2 strings on top of the stack
+               ; returns descriptor of newly allocated concatenated string
+HALT
 ```
 
 {ANSI.BOLD}Example of a string in memory:{ANSI.END}
 
 ```
-0x1006 [ ptr -> 0x1007 ] (&descriptionVec[0])
-0x1007 [ ptr -> 0x8000 ] (&str[0])
-0x1008 [ int -> 3      ] (length+1)
-0x1009 [ int -> 16     ] (capacity)
+0x0003 [ ptr -> 0x2000 ] (&descriptor[0])
        .
        . (all addresses in between are irrelevant)
        .
-0x8000 [ char -> 'H'   ] (str[0]) // first free address in the heap
-0x8001 [ char -> 'i'   ] (str[1])
-0x8002 [ char -> '\0'  ] (str[2])
+0x2000 [ ptr -> 0x2003 ] (&str[0])
+0x2001 [ int -> 3      ] (length+1)
+0x2002 [ int -> 16     ] (capacity)
+0x2003 [ char -> 'H'   ] (str[0])
+0x2004 [ char -> 'i'   ] (str[1])
+0x2005 [ char -> '\0'  ] (str[2])
 ```
 
 ==================================================
@@ -1143,18 +1155,17 @@ Planned Features
 ========
 
 {ANSI.UNDERLINE}0.2.0{ANSI.END}
-* Pointers
-* Strings
-* Arrays
-* Functions
+* Pointers    (DONE)
+* Strings     (DONE)
+* Arrays      (DONE)
+* Subroutines (WIP)
 
 {ANSI.UNDERLINE}0.3.0{ANSI.END}
 * OOP
 * Structs
-* Dynamic Memory
+* Dynamic Memory (WIP)
 
 {ANSI.UNDERLINE}0.5.0{ANSI.END}
-* Modules
 * Standard Library
 
 {ANSI.UNDERLINE}1.0.0{ANSI.END}
