@@ -424,6 +424,25 @@ SYS 10         ; concatenate 2 strings on top of the stack
 HALT
 ```
 
+{ANSI.BOLD}Comparison{ANSI.END}
+```xe
+"Hello" == "World"
+```
+
+```xas
+; normally this would get folded to `false`,
+; but here's how it would look like if there is no constant folding.
+
+...            ; initialize literal "Hello "
+; stack: `[ &"Hello".descriptor ]`
+
+...            ; initialize literal "World"
+; stack: `[ &"Hello".descriptor, &"World".descriptor ]`
+SYS 11         ; compares 2 strings on top of the stack
+               ; returns a boolean indicating whether the 2 strings are equal
+HALT
+```
+
 {ANSI.BOLD}Example of a string in memory:{ANSI.END}
 
 ```
@@ -458,6 +477,9 @@ out << "Hello," << " World!\n"
 
 {ANSI.BOLD}{ANSI.YELLOW}OUTPUT{ANSI.END}
 Hello, World!
+
+As the `out` command can accept values with many types, the assembly output is not documented here.
+Check the `XAssembly` doc for more implementation details.
 
 {ANSI.BOLD}Input{ANSI.END}
 Use the {ANSI.BOLD}in{ANSI.END} statement to request user input from the terminal as a string (syntactically similar to C++'s std::istream):
@@ -729,23 +751,23 @@ SYS 9
 ```
 
 ==================================================
-Functions and Procedures
+Subroutines
 ========
 
-In Xe, reusable code units are divided into two distinct paradigms:
+In Xe, subroutines are divided into two distinct paradigms:
 
-{ANSI.CYAN}Functions (`fn`){ANSI.END}: Perform a computation and return a single typed value.
+* {ANSI.CYAN}Functions (`fn`){ANSI.END}: Perform a computation and return a single typed value.
+* {ANSI.CYAN}Procedures (`proc`){ANSI.END}: Perform actions, modify state, or execute subroutines without returning a value.
 
-{ANSI.CYAN}Procedures (`proc`){ANSI.END}: Perform actions, modify state, or execute subroutines without returning a value.
-
-Because the Xenon-131 VM utilizes an isolated hardware Data Stack (DS) and Return Stack (RS) separate from RAM, call frames and local variables cannot reside in RAM. Instead, they are managed directly on the Data Stack using a stack-relative Frame Pointer (FP) register.
+Because the Xenon-131 VM utilizes an isolated hardware Data Stack (DS) and Call Stack (RS) separate from RAM, call frames and local variables cannot reside in RAM.
+Instead, they are managed directly on the Data Stack using a stack-relative Frame Pointer (FP) register.
 
 The VM provides five dedicated instructions for this:
 
 * {ANSI.GREEN}PUSHFP{ANSI.END}: Pushes the current Frame Pointer register onto the top of the Data Stack.
 * {ANSI.GREEN}POPFP{ANSI.END}: Pops the top value of the Data Stack back into the FP register.
-* {ANSI.GREEN}SETFP{ANSI.END}: Assigns the current Stack Pointer index to the Frame Pointer (`FP = SP`).
-* {ANSI.GREEN}LOADSP {ANSI.END}: Copies the value at `DS[FP + offset]` to the top of the stack.
+* {ANSI.GREEN}SETFP{ANSI.END}: Sets FP to SP - 1.
+* {ANSI.GREEN}LOADSP {ANSI.END}: Pushes the value at `DS[FP + offset]` to the top of the stack.
 * {ANSI.GREEN}STORESP {ANSI.END}: Pops the top stack value and writes it to `DS[FP + offset]`.
 
 {ANSI.BOLD}{ANSI.YELLOW}Procedures (`proc`){ANSI.END}
@@ -772,9 +794,9 @@ call name(arg1, arg2, ...)
 
 ```xe
 proc print_sum(a: int, b: int) {
-    var temp: int
-    temp = a + b
-    out << temp << '\n'
+    var sum: int
+    sum = a + b
+    out << sum << '\n'
 }
 
 call print_sum(5, 12)
@@ -784,52 +806,45 @@ call print_sum(5, 12)
 {ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```xas
-; --- Call Site ---
-PUSH 5              ; Arg 'a' (will be at FP + 2)
-PUSH 12             ; Arg 'b' (will be at FP + 1)
-CALL print_sum     ; Push return PC to RS and branch
+PUSH 5          ; argument `a` is at `FP - 2`
+PUSH 12         ; argument `b` is at `FP - 1`
+PUSHFP          ; push caller's `FP`
+CALL print_sum  ; push `IP+1` to call stack then jumps to `print_sum` label
+HALT
 
-; --- Subroutine Implementation ---
 :print_sum
-    PUSHFP          ; Save caller's FP (at FP + 0)
-    SETFP           ; Establish new frame: FP = SP
-    PUSH 0          ; Allocate 1 local variable 'temp' (at FP - 1)
-    
-    ; temp = a + b
-    LOADSP 2        ; Load 'a'
-    LOADSP 1        ; Load 'b'
-    ADDI            ; a + b
-    STORESP -1      ; Store to 'temp'
-    
-    ; out << temp
-    PUSH 0x2000     ; &buffer (RAM address allocated for conversions)
-    LOADSP -1       ; Load 'temp' value
-    SYS 5           ; inttostr syscall
-    LOAD 0x2000     ; &buffer
-    LOADIND         ; buffer[0]
-    SYS 1           ; output syscall
-    
-    ; out << '\n'
-    PUSH 10         ; '\n' ASCII character code
-    SYS 9           ; put_char syscall
-    
-    ; --- Epilog & Clean Stack Exit ---
-    POP             ; Deallocate local variable 'temp'
-    POPFP           ; Restore caller's FP
-    
-    ; Stack currently contains: [..., a, b]
-    ; We must discard parameters 'a' and 'b' (2 elements) on return
-    RET 2           ; Return and pop 2 arguments off the Data Stack
+    ; prologue
+    SETFP
+    PUSH 0      ; allocate 1 slot for local variable `sum`
+
+    ; body
+    LOADSP 2    ; loads `DS[FP - 2]` -> `a`
+    LOADSP 1    ; loads `DS[FP - 1]` -> `b`
+    ADDI
+    STORESP -1  ; `sum = a + b`
+
+    ...         ; `out << sum << '\n'`
+
+    ; epilogue
+    :cleanup(print_sum)
+    POP 1       ; discard locals
+    POPFP       ; restore caller's `FP`
+    POP 3       ; pop FP and 2 arguments
+    RET         ; pops call stack to `IP`
 ```
 
 {ANSI.BOLD}{ANSI.YELLOW}Functions (`fn`){ANSI.END}
 
-Functions are defined using the `fn` keyword, must specify a return type, must terminate with a return statement, and are called as inline expressions.
+Functions are:
+* defined using the `fn` keyword
+* always specified with a return type
+* terminated with a return statement
+* called as inline expressions
 
 {ANSI.BOLD}Declaration Syntax:{ANSI.END}
 
 ```xe
-fn return_type name(arg1: type, arg2: type, ...) {
+fn name(arg1: type, arg2: type, ...) return_type {
     # local variable declarations
     # body
     return value
@@ -840,13 +855,13 @@ fn return_type name(arg1: type, arg2: type, ...) {
 
 ```xe
 var result: type
-result = name(arg1, arg2, ...)
+result = name(arg1, arg2, ...)  # both types must match!
 ```
 
 {ANSI.YELLOW}Example: Recursive Factorial (`n!`){ANSI.END}
 
 ```xe
-fn int factorial(n: int) {
+fn factorial(n: int) int {
     if (n <= 1) {
         return 1
     }
@@ -860,46 +875,44 @@ x = factorial(5)
 {ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```xas
-; --- Call Site ---
-PUSH 5              ; Push argument N
-CALL factorial     ; Jump to recursive function
-STORE 0x1000        ; Store returned value in variable `x`
+PUSH 5          ; argument `n` is at `FP - 1`
+PUSHFP          ; push caller's `FP`
+CALL factorial  ; push `IP+1` to call stack and jump to `factorial` label
+STORE 0         ; store result in `res`
+HALT
 
-; --- Function Implementation ---
 :factorial
-    PUSHFP          ; Save caller's FP (at FP + 0)
-    SETFP           ; Base of current stack frame
-    
-    ; If (n <= 1) -> n - 1 <= 0
-    LOADSP 1        ; Load 'n'
+    ; prologue
+    SETFP
+    ; no other locals present, so no `PUSH` instrucctions are here
+
+    ; body
+    LOADSP 1
     PUSH 1
     ILE
-    BRNZ base_case ; If n - 1 < 0, jump to base case
-    
-    ; Recursive path: return n * factorial(n - 1)
-    LOADSP 1        ; Load 'n' to preserve on the stack for later multiplication
-    
-    LOADSP 1        ; Load 'n' again to calculate recursive argument
+    BRZ else(0)              ; if `n > 1`, skip
+    PUSH 1                   ; push return value for base case `n <= 1`
+    JUMP cleanup(factorial)
+    JUMP endif(0)
+    :else(0)
+    :endif(0)
+
+    LOADSP 1                 ; push `n` to the stack
+    LOADSP 1                 ; push `n` to the stack
     PUSH 1
-    SUBI            ; n - 1
-    
-    CALL factorial ; Recursive invocation!
-                    ; Stack top is now: [..., n, factorial(n - 1)]
-    MULI            ; n * factorial(n - 1)
-    JUMP cleanup
+    SUBI                     ; argument `n` is at `FP - 1`
+    PUSHFP                   ; push new caller's `FP`
+    CALL factorial
+    MULI                     ; `n * factorial(n - 1)`
+    JUMP cleanup(factorial)
 
-:base_case
-    PUSH 1          ; Return value for base case
-
-:cleanup
-    ; At this point, Stack looks like: [..., Saved FP, Argument 'n', Return Value]
-    ; We must preserve the return value while popping the frame metadata
-    
-    STORESP 1       ; Overwrite the Argument 'n' slot with the Return Value
-    POPFP           ; Restore caller's FP (removes saved FP from the stack)
-    
-    ; Stack now contains: [..., Return Value]
-    RET             ; Pop Return Stack (RS) into PC and return to caller
+    ; epilogue
+    :cleanup(factorial)
+    STORESP 1                ; store return value at `FP - 1`, mutating the argument slot
+    POP 0                    ; no locals, so `POP 0` does nothing
+    POPFP                    ; restore caller's `FP`
+    POP 1                    ; pop 1 argument
+    RET                      ; pops call stack to IP
 ```
 
 {ANSI.BOLD}Frame Allocation{ANSI.END}
@@ -910,11 +923,11 @@ During active execution of factorial(n), the private Data Stack (DS) layout is d
 
         Data Stack (DS)           Frame Offset
    ┌─────────────────────────┐
-   │ Argument 'n'          │  FP + 1
+   │ Argument 'n'          │  FP - 1
    ├─────────────────────────┤
-   │ Saved Caller FP       │  FP + 0   <--- [FP Register Points Here]
+   │ Saved Caller FP       │  FP - 0   <--- [FP Register Points Here]
    ├─────────────────────────┤
-   │ Evaluation Stack Space│  FP - 1 (Grows downward during math ops)
+   │ Evaluation Stack Space│  FP + 1 (Grows downward during ops)
    └─────────────────────────┘
 ```
 
@@ -924,14 +937,10 @@ This architecture permits unlimited recursion and local variable scopes, as ever
 Dynamic Memory
 ========
 
-Dynamic memory allocation in Xe allows variables to be instantiated on the heap during runtime. This is critical for resizing arrays, dynamic string adjustments, and creating long-lived object/struct instances that persist beyond their local function/procedure scope.
+Dynamic memory allocation in Xe allows variables to be instantiated on the heap during runtime.
 
 {ANSI.BOLD}{ANSI.YELLOW}The Heap Model{ANSI.END}
 The Xenon-131 Virtual Machine handles heap allocations via the standard syscall interface:
-
-{ANSI.CYAN}SYS 21 (SYS_MALLOC){ANSI.END}: Expects the size (number of 32-bit words) on top of the stack. Pops size, reserves contiguous memory on the heap, and pushes the starting RAM address of that block to the stack. If no memory is available, it raises a HeapOverflow interrupt.
-
-{ANSI.CYAN}Freeing Memory{ANSI.END}: The XVM uses a simplified allocator. For larger implementations, memory blocks track metadata (like size) immediately preceding the returned pointer block.
 
 {ANSI.BOLD}Allocation (new Operator){ANSI.END}
 The new operator dynamically requests a block of memory of a specific size or type.
@@ -956,7 +965,7 @@ STORE 0x1000 ; Store address in `my_ptr`
 Structs
 ========
 
-Structs are contiguous blocks of memory containing structured, typed data fields. In Xe, a struct variable is represented as a {ANSI.PURPLE}pointer{ANSI.END} holding the starting address of its data block in RAM (either on the stack frame or heap).
+Structs are contiguous blocks of memory containing structured, typed data fields.
 
 {ANSI.BOLD}Declaration & Definition{ANSI.END}
 Struct types are declared with named, typed fields.
@@ -967,7 +976,7 @@ struct Point {
     y: int
 }
 
-# Declares a local Point instance on the stack
+# Declares a Point struct
 var p: Point
 ```
 
@@ -988,16 +997,16 @@ p.x = 10
 p.y = 20
 ```
 
-{ANSI.YELLOW}Compiler Output (Assuming p resides at address 0x1015):{ANSI.END}
+{ANSI.YELLOW}Compiler Output (Assuming p resides at address 0x0015):{ANSI.END}
 
 ```xas
 ; p.x = 10 (offset 0)
 PUSH 10
-STORE 0x1015   ; p.x
+STORE 0x0015   ; p.x
 
 ; p.y = 20 (offset 1)
 PUSH 20
-STORE 0x1016   ; p.y (0x1015 + 1)
+STORE 0x0016   ; p.y (`0x0015 + 1`)
 ```
 
 
@@ -1006,28 +1015,28 @@ When a struct is created dynamically via the new keyword, its memory is requeste
 
 ```xe
 var dynamic_p: Point*
-dynamic_p = new Point
-dynamic_p.y = 42
+dynamic_p = new Point()
+dynamic_p->y = 42
 ```
 
 {ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```xas
-; dynamic_p = new Point (Size of Point is 2)
+; dynamic_p = new Point (size of `Point` is 2)
 PUSH 2
-SYS 21         ; SYS_MALLOC. Stack: [ heap_addr ]
-STORE 0x1017   ; Store heap address in `dynamic_p`
+SYS 21         ; SYS_MALLOC. Stack: `[ heap_addr ]`
+STORE 0x0017   ; store heap address in `dynamic_p`
 
 ; dynamic_p.y = 42 (offset 1)
-PUSH 1         ; Field offset for 'y'
-LOAD 0x1017    ; Load base address of `dynamic_p`
-ADDI           ; Calculate heap_addr + 1
-PUSH 42        ; Value to store
-STREIND        ; Store 42 at address (heap_addr + 1)
+LOAD 0x0017    ; load base address of `dynamic_p`
+PUSH 1         ; field offset for 'y'
+ADDI
+PUSH 42
+STREIND        ; store 42 at `heap_addr + 1`
 ```
 
 ==================================================
-OOP (Object Oriented Programming)
+Classes
 ========
 
 Object-Oriented Programming in Xe extends the structural layout of structs by introducing encapsulation, methods, constructors, and inheritance.
@@ -1038,17 +1047,11 @@ Under the hood, objects are represented similarly to structs, with fields mapped
 ```xe
 class Player {
     # Member fields
-    hp: int
-    score: int
-
-    # Constructor
-    proc init(starting_hp: int) {
-        this.hp = starting_hp
-        this.score = 0
-    }
+    var hp: int
+    var score: int
 
     # Member Method
-    fn int get_score() {
+    fn get_score() int {
         return this.score
     }
 }
@@ -1058,13 +1061,29 @@ class Player {
 An instance of `{ANSI.CYAN}Player`{ANSI.END} is stored as a block of contiguous memory containing only its member fields. Methods are stored as global routines in PROM; they do not occupy space inside individual object instances.
 
 ```
-player_inst ---> [ offset 0: `hp`    ] (32-bit signed int)
-                 [ offset 1: `score` ] (32-bit signed int)
+player_inst ---> [ offset 0: `hp`    ]
+                 [ offset 1: `score` ]
+```
+
+{ANSI.BOLD}Instantiating a class instance{ANSI.END}
+Instantiating a class instance is similar to instantiating a struct:
+
+```xe
+var jack: Player
+jack.hp = 50
+```
+
+{ANSI.YELLOW}Compiler Output:{ANSI.END}
+(assuming `jack` is at address `0x0018`)
+
+```xas
+PUSH 50
+STORE 0x0018  ; `jack.hp` is at offset 0
 ```
 
 
-{ANSI.BOLD}Constructors (init Procedures){ANSI.END}
-When an object is instantiated, memory is allocated (either on the stack or dynamically on the heap), and its explicit initialization routine (`{ANSI.PURPLE}init`{ANSI.END}) is executed immediately.
+{ANSI.BOLD}Instantiating a class instance with `new`{ANSI.END}
+When an object is instantiated via `new`, memory is allocated dynamically on the heap.
 
 ```xe
 var hero: Player*
@@ -1074,34 +1093,12 @@ hero = new Player(100)
 {ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```xas
-; --- Instantiate and Call Constructor ---
-PUSH 2              ; Size of Player fields (hp, score)
-SYS 21              ; Allocate on heap. Stack: [ heap_ptr ]
-STORE 0x1010        ; hero = heap_ptr
-
-; --- Call Constructor Hero.init(100) ---
-LOAD 0x1010         ; Pass `this` pointer implicitly (will be at FP + 2)
-PUSH 100            ; Pass parameter `starting_hp` (will be at FP + 1)
-CALL Player__init   ; Jump to constructor label
-
-:Player__init
-    PUSHFP          ; Save caller's FP
-    SETFP           ; Set FP = SP
-    
-    ; this.hp = starting_hp
-    LOADSP 1        ; Load `starting_hp` (FP + 1)
-    LOADSP 2        ; Load `this` pointer (FP + 2)
-    STREIND         ; Store `starting_hp` at `this` (offset 0)
-
-    ; this.score = 0
-    PUSH 1          ; Offset for `score`
-    LOADSP 2        ; Load `this` pointer
-    ADDI            ; Address of `this.score`
-    PUSH 0          ; Value 0
-    STREIND         ; Store 0
-
-    POPFP           ; Restore FP
-    RET 2           ; Return and pop 2 arguments (`this`, `starting_hp`)
+PUSH 2        ; `Player` has 2 fields (`hp`, `score`)
+SYS 21        ; allocate memory on the heap
+DUP 0         ; duplicate `this` pointer
+PUSH 100
+STREIND       ; instantiate `hero.hp` to `100` as `hp` is at offset 0
+STORE 0x001A  ; store `this` pointer to `hero`
 ```
 
 {ANSI.BOLD}Method Dispatching & the `this` Pointer{ANSI.END}
@@ -1109,65 +1106,59 @@ Method invocations translate directly into normal subroutine calls where the tar
 
 ```xe
 var s: int
-s = hero.get_score()
+s = hero->get_score()
 ```
 
 {ANSI.YELLOW}Compiler Output:{ANSI.END}
 
 ```xas
-; --- Method Call Site ---
-LOAD 0x1010         ; Push base object address `hero` onto stack as `this`
-CALL Player__get_score
-STORE 0x1012        ; Store return value in `s`
+LOAD 0x001A         ; push base object address `hero` onto stack as `this`
+PUSHFP              ; save caller's FP
+CALL Player_get_score
+STORE 0x001B        ; store return value in `s`
 
-:Player__get_score
-    PUSHFP          ; Save caller's FP
-    SETFP           ; Set FP = SP
+:Player_get_score
+    SETFP
+    LOADSP 1        ; `this`
+    PUSH 1
+    ADDI
+    LOADIND         ; `this.score`
 
-    ; return this.score (offset 1)
-    PUSH 1          ; Offset 1
-    LOADSP 1        ; Load 'this' pointer (FP + 1)
-    ADDI            ; Address of this.score
-    LOADIND         ; Fetch value from address
-    
-    ; Stack clean up
-    STORESP 1       ; Overwrite 'this' argument slot with the return value
-    POPFP           ; Restore old FP
-    RET             ; Return to caller
+    ; this exact behaviour is somehow not in the actual compiler due to a bug
+    JUMP cleanup(Player_get_score)
+
+    :cleanup(Player_get_score)
+    STORESP 1      ; mutate the arguments with return value
+    POP 0
+    POPFP
+    POP 1          ; pop stored `FP`
+    RET
 ```
-
-{ANSI.BOLD}Inheritance & Virtual Tables (Vtables){ANSI.END}
-For advanced OOP, single inheritance is supported. If virtual methods are used, the first field of the object instance (offset 0) is reserved as a pointer to a Virtual Method Table (Vtable) stored in PROM.
-
-```
-`Derived Object Instance (RAM)`     `Vtable (PROM)`
-
-0: Vtable Pointer ---------------> 0: Override Method A
-                                   1: Base Method B
-1: Parent Field 1
-2. Child Field 1
-```
-
-Virtual calls are resolved at runtime by loading the vtable pointer, offsetting by the method index, loading the target PROM address, and executing a dynamic jump.
 
 ==================================================
-Planned Features
+Standard Libraries
+========
+For now, XenonOS supports 1 standard library:
+
+* `math`
+
+Standard libraries are built into the language already, so there's no need to import anything.
+
+==================================================
+Xe.math
 ========
 
-{ANSI.UNDERLINE}0.2.0{ANSI.END}
-* Pointers    (DONE)
-* Strings     (DONE)
-* Arrays      (DONE)
-* Subroutines (WIP)
+{ANSI.BOLD}Constants{ANSI.END}
+* `math::pi`: Returns the value of `pi` (~3.141593)
+* `math::e` : Returns the value of `e`  (~2.718282)
 
-{ANSI.UNDERLINE}0.3.0{ANSI.END}
-* OOP
-* Structs
-* Dynamic Memory (WIP)
-
-{ANSI.UNDERLINE}0.5.0{ANSI.END}
-* Standard Library
-
-{ANSI.UNDERLINE}1.0.0{ANSI.END}
-* Full XenonOS Support
-* Graphics API
+{ANSI.BOLD}Functions{ANSI.END}
+* `math::sin(x)`       : Returns the value of `sin(x)` (x is in degrees)
+* `math::cos(x)`       : Returns the value of `cos(x)` (x is in degrees)
+* `math::tan(x)`       : Returns the value of `tan(x)` (x is in degrees)
+* `math::asin(x)`      : Returns the value of `asin(x)` (x is in degrees)
+* `math::acos(x)`      : Returns the value of `acos(x)` (x is in degrees)
+* `math::atan(x)`      : Returns the value of `atan(x)` (x is in degrees)
+* `math::lerp(t, a, b)`: Returns `a*t + (b-a)*(1-t)`
+* `math::sqrt(x)`      : Returns `sqrt(x)`
+* `math::pow(a, b)`    : Returns `a ** b`
